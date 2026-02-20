@@ -170,6 +170,25 @@ export default function ProfileSettings() {
         </Link>
       </div>
 
+      {/* Crisis Resources */}
+      <div className="bg-rose-50 dark:bg-rose-950/30 rounded-2xl border border-rose-200 dark:border-rose-800 p-5">
+        <h3 className="font-semibold text-sm text-rose-900 dark:text-rose-200 mb-3">Crisis Resources</h3>
+        <div className="space-y-2 text-sm">
+          <a href="tel:988" className="flex items-center gap-2 text-rose-700 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200">
+            <ExternalLink className="w-4 h-4" />
+            988 Suicide & Crisis Lifeline
+          </a>
+          <a href="tel:1-800-662-4357" className="flex items-center gap-2 text-rose-700 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200">
+            <ExternalLink className="w-4 h-4" />
+            SAMHSA Helpline: 1-800-662-4357
+          </a>
+          <a href="sms:741741" className="flex items-center gap-2 text-rose-700 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200">
+            <ExternalLink className="w-4 h-4" />
+            Crisis Text Line: 741741
+          </a>
+        </div>
+      </div>
+
       {/* Danger Zone */}
       <div className="space-y-3">
         <Button

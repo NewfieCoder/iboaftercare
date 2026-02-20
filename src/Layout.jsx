@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { Home, MessageCircle, TrendingUp, BookOpen, Settings, TreePine, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import CrisisFooter from "@/components/CrisisFooter";
+import OfflineIndicator from "@/components/OfflineIndicator";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -45,6 +47,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300`}>
+      <OfflineIndicator />
       <style>{`
         :root {
           --color-primary: #0D9488;

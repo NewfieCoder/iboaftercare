@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Crown } from "lucide-react";
+import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Crown, Play } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import CrisisRedirect from "@/components/CrisisRedirect";
 import PremiumUpsell from "@/components/PremiumUpsell";
+import GuidedSession from "@/components/chat/GuidedSession";
+import AccessibilityControls from "@/components/AccessibilityControls";
 
 const SUGGESTED_PROMPTS = [
   "How am I doing this week?",
@@ -14,6 +16,12 @@ const SUGGESTED_PROMPTS = [
   "Let's do a daily check-in",
   "Help me process an insight from my experience",
   "What's a good evening routine?",
+];
+
+const GUIDED_SESSIONS = [
+  { id: "mindfulness", label: "5-Min Mindfulness", icon: "🧘" },
+  { id: "breathing", label: "Box Breathing", icon: "🌬️" },
+  { id: "gratitude", label: "Gratitude Practice", icon: "🙏" }
 ];
 
 export default function CoachChat() {
@@ -25,6 +33,7 @@ export default function CoachChat() {
   const [showHistory, setShowHistory] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
+  const [showGuidedSession, setShowGuidedSession] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -96,10 +105,16 @@ export default function CoachChat() {
     setInput("");
     setSending(true);
 
-    // Crisis detection
-    const crisisWords = ["suicide", "suicidal", "kill myself", "end my life", "want to die", "self-harm"];
+    // Enhanced crisis detection
+    const crisisWords = [
+      "suicide", "suicidal", "kill myself", "end my life", "want to die", 
+      "self-harm", "hurt myself", "no reason to live", "better off dead",
+      "overdose", "end it all"
+    ];
     if (crisisWords.some(w => msg.toLowerCase().includes(w))) {
       setShowCrisis(true);
+      setSending(false);
+      return; // Don't process message, prioritize crisis response
     }
 
     let conv = currentConv;
@@ -116,6 +131,10 @@ export default function CoachChat() {
     setSending(false);
     inputRef.current?.focus();
   }
+
+  const handleVoiceInput = (transcript) => {
+    setInput(transcript);
+  };
 
   async function selectConversation(conv) {
     const full = await base44.agents.getConversation(conv.id);
@@ -173,6 +192,8 @@ export default function CoachChat() {
     <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)]">
       {showCrisis && <CrisisRedirect onClose={() => setShowCrisis(false)} />}
       {showPremium && <PremiumUpsell onClose={() => setShowPremium(false)} feature="unlimited AI coach sessions" />}
+      {showGuidedSession && <GuidedSession sessionType={showGuidedSession} onClose={() => setShowGuidedSession(null)} />}
+      <AccessibilityControls onVoiceInput={handleVoiceInput} showVoiceInput={messages.length > 0} />
 
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/50">
@@ -216,6 +237,26 @@ export default function CoachChat() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs">
               Your AI aftercare coach. I'm here to support your recovery journey with evidence-based guidance and encouragement.
             </p>
+            
+            {/* Guided Sessions */}
+            <div className="w-full mb-4">
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Guided Practices</p>
+              <div className="grid grid-cols-3 gap-2">
+                {GUIDED_SESSIONS.map(session => (
+                  <button
+                    key={session.id}
+                    onClick={() => setShowGuidedSession(session.id)}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/20 dark:to-emerald-950/20 border border-teal-200 dark:border-teal-800 hover:scale-105 transition-transform"
+                  >
+                    <span className="text-2xl">{session.icon}</span>
+                    <span className="text-xs text-slate-700 dark:text-slate-300 text-center font-medium">
+                      {session.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="w-full space-y-2">
               {SUGGESTED_PROMPTS.slice(0, 4).map(prompt => (
                 <button

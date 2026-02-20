@@ -8,6 +8,7 @@ import HabitWidget from "@/components/dashboard/HabitWidget";
 import QuickActions from "@/components/dashboard/QuickActions";
 import MilestoneCard from "@/components/dashboard/MilestoneCard";
 import WelcomeTutorial from "@/components/WelcomeTutorial";
+import IntegrationCalendar from "@/components/dashboard/IntegrationCalendar";
 import { Loader2 } from "lucide-react";
 
 export default function Home() {
@@ -75,6 +76,9 @@ export default function Home() {
 
       {/* Milestone */}
       <MilestoneCard treatmentDate={profile?.treatment_date} />
+
+      {/* Integration Calendar */}
+      <IntegrationCalendar />
 
       {/* Quick Actions */}
       <QuickActions />
