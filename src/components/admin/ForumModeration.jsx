@@ -17,24 +17,23 @@ export default function ForumModeration({ adminEmail }) {
   }, []);
 
   async function loadPosts() {
-    const [allPosts, allReplies] = await Promise.all([
-      base44.asServiceRole.entities.ForumPost.list('-created_date', 100),
-      base44.asServiceRole.entities.ForumReply.list('-created_date', 100)
-    ]);
-    setPosts(allPosts);
-    setReplies(allReplies);
-    setLoading(false);
+    try {
+      const { data } = await base44.functions.invoke('adminGetForumContent');
+      setPosts(data?.posts || []);
+      setReplies(data?.replies || []);
+      setLoading(false);
+    } catch (e) {
+      toast.error("Failed to load forum content");
+      setLoading(false);
+    }
   }
 
   async function deletePost(id) {
     if (!confirm("Delete this post? This cannot be undone.")) return;
     try {
-      await base44.asServiceRole.entities.ForumPost.delete(id);
-      await base44.entities.AdminActivityLog.create({
-        admin_email: adminEmail,
-        action_type: 'forum_post_deleted',
-        details: 'Deleted forum post',
-        target_entity_id: id
+      await base44.functions.invoke('adminModeratePost', {
+        action: 'delete',
+        postId: id
       });
       toast.success("Post deleted");
       loadPosts();
@@ -45,7 +44,11 @@ export default function ForumModeration({ adminEmail }) {
 
   async function toggleFlag(id, currentStatus) {
     try {
-      await base44.asServiceRole.entities.ForumPost.update(id, { is_flagged: !currentStatus });
+      await base44.functions.invoke('adminModeratePost', {
+        action: 'update',
+        postId: id,
+        updateData: { is_flagged: !currentStatus }
+      });
       toast.success(currentStatus ? "Post unflagged" : "Post flagged for review");
       loadPosts();
     } catch (e) {

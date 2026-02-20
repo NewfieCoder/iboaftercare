@@ -23,28 +23,30 @@ export default function MonetizationControls({ adminEmail }) {
   }, []);
 
   async function loadDiscounts() {
-    const codes = await base44.asServiceRole.entities.DiscountCode.list('-created_date');
-    setDiscounts(codes);
-    setLoading(false);
+    try {
+      const { data } = await base44.functions.invoke('adminGetDiscounts');
+      setDiscounts(data || []);
+      setLoading(false);
+    } catch (e) {
+      toast.error("Failed to load discount codes");
+      setLoading(false);
+    }
   }
 
   async function createDiscount(e) {
     e.preventDefault();
     try {
-      await base44.asServiceRole.entities.DiscountCode.create({
-        code: formData.code.toUpperCase(),
-        discount_percent: parseFloat(formData.discount_percent),
-        expires_at: formData.expires_at || null,
-        usage_limit: parseInt(formData.usage_limit) || 0,
-        description: formData.description,
-        active: true,
-        usage_count: 0
-      });
-
-      await base44.entities.AdminActivityLog.create({
-        admin_email: adminEmail,
-        action_type: 'discount_created',
-        details: `Created discount code: ${formData.code}`
+      await base44.functions.invoke('adminManageDiscount', {
+        action: 'create',
+        discountData: {
+          code: formData.code.toUpperCase(),
+          discount_percent: parseFloat(formData.discount_percent),
+          expires_at: formData.expires_at || null,
+          usage_limit: parseInt(formData.usage_limit) || 0,
+          description: formData.description,
+          active: true,
+          usage_count: 0
+        }
       });
 
       toast.success("Discount code created");
@@ -59,7 +61,10 @@ export default function MonetizationControls({ adminEmail }) {
   async function deleteDiscount(id, code) {
     if (!confirm(`Delete discount code "${code}"?`)) return;
     try {
-      await base44.asServiceRole.entities.DiscountCode.delete(id);
+      await base44.functions.invoke('adminManageDiscount', {
+        action: 'delete',
+        discountId: id
+      });
       toast.success("Discount code deleted");
       loadDiscounts();
     } catch (e) {
@@ -69,7 +74,11 @@ export default function MonetizationControls({ adminEmail }) {
 
   async function toggleActive(id, currentStatus) {
     try {
-      await base44.asServiceRole.entities.DiscountCode.update(id, { active: !currentStatus });
+      await base44.functions.invoke('adminManageDiscount', {
+        action: 'update',
+        discountId: id,
+        discountData: { active: !currentStatus }
+      });
       toast.success(currentStatus ? "Code deactivated" : "Code activated");
       loadDiscounts();
     } catch (e) {
