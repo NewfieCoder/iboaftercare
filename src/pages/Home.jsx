@@ -23,6 +23,13 @@ export default function Home() {
       const u = await base44.auth.me();
       setUser(u);
       const profiles = await base44.entities.UserProfile.list();
+      
+      // If user has Tester role, ensure premium is granted
+      if (u?.role === 'tester' && profiles.length > 0 && !profiles[0].premium) {
+        await base44.entities.UserProfile.update(profiles[0].id, { premium: true });
+        profiles[0].premium = true;
+      }
+      
       if (profiles.length === 0) {
         navigate(createPageUrl("Onboarding"));
         return;

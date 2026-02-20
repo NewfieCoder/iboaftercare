@@ -18,11 +18,15 @@ const navItems = [
 
 export default function Layout({ children, currentPageName }) {
   const [darkMode, setDarkMode] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const hideNav = currentPageName === "Onboarding";
 
   useEffect(() => {
     async function loadTheme() {
       try {
+        const user = await base44.auth.me();
+        setUserRole(user?.role);
+        
         const profiles = await base44.entities.UserProfile.list();
         if (profiles.length > 0 && profiles[0].dark_mode) {
           setDarkMode(true);

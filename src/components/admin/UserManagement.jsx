@@ -2,20 +2,36 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Ban, Crown, MoreVertical, Loader2, Mail, CheckCircle } from "lucide-react";
+import { Search, Ban, Crown, MoreVertical, Loader2, Mail, CheckCircle, Shield, Code, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function UserManagement({ adminEmail }) {
   const [users, setUsers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newRole, setNewRole] = useState("");
+  const [roleReason, setRoleReason] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   useEffect(() => {
     loadUsers();
@@ -33,20 +49,44 @@ export default function UserManagement({ adminEmail }) {
     }
   }
 
-  async function promoteToAdmin(userId, userEmail) {
+  function openRoleDialog(user, role) {
+    setSelectedUser(user);
+    setNewRole(role);
+    setRoleReason("");
+    setShowRoleDialog(true);
+  }
+
+  async function confirmRoleChange() {
+    if (!selectedUser || !newRole) return;
+    
     try {
-      await base44.functions.invoke('adminUpdateUser', {
-        userId,
-        updates: { role: 'admin' },
-        logAction: {
-          type: 'user_promoted',
-          details: `Promoted ${userEmail} to admin`
-        }
+      const result = await base44.functions.invoke('adminChangeUserRole', {
+        userId: selectedUser.id,
+        newRole: newRole,
+        reason: roleReason || `Changed role to ${newRole}`
       });
-      toast.success("User promoted to admin");
+      
+      if (result.data.premiumGranted) {
+        toast.success(`${selectedUser.email} granted ${newRole} role with FREE premium access`);
+      } else {
+        toast.success(result.data.message);
+      }
+      
+      setShowRoleDialog(false);
       loadUsers();
     } catch (e) {
-      toast.error("Failed to promote user");
+      toast.error(e.message || "Failed to change user role");
+    }
+  }
+
+  function getRoleDescription(role) {
+    switch(role) {
+      case 'admin': return 'Full access to all features, user management, and settings';
+      case 'tester': return 'FREE Premium tier access for beta testing (no payment required)';
+      case 'editor': return 'Can edit resources, articles, and AI templates';
+      case 'moderator': return 'Can moderate forum posts and manage community';
+      case 'user': return 'Standard user access based on subscription tier';
+      default: return '';
     }
   }
 
@@ -73,10 +113,12 @@ export default function UserManagement({ adminEmail }) {
     }
   }
 
-  const filteredUsers = users.filter(u => 
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.full_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.full_name?.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === "all" || (u.role || 'user') === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   if (loading) {
     return (
@@ -89,7 +131,7 @@ export default function UserManagement({ adminEmail }) {
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
@@ -99,6 +141,19 @@ export default function UserManagement({ adminEmail }) {
             className="pl-9 rounded-xl"
           />
         </div>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-full sm:w-40 rounded-xl">
+            <SelectValue placeholder="Filter by role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="tester">Tester</SelectItem>
+            <SelectItem value="editor">Editor</SelectItem>
+            <SelectItem value="moderator">Moderator</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
         <Button onClick={sendAnnouncement} className="rounded-xl gap-2">
           <Mail className="w-4 h-4" />
           Send Announcement
@@ -106,18 +161,26 @@ export default function UserManagement({ adminEmail }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-slate-900 dark:text-white">{users.length}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Total Users</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
-          <p className="text-2xl font-bold text-teal-600">{users.filter(u => u.premium).length}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Premium</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Total</p>
         </div>
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-violet-600">{users.filter(u => u.role === 'admin').length}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Admins</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Admins</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
+          <p className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'tester').length}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Testers</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
+          <p className="text-2xl font-bold text-orange-600">{users.filter(u => u.role === 'moderator').length}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Moderators</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
+          <p className="text-2xl font-bold text-blue-600">{users.filter(u => u.role === 'editor').length}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Editors</p>
         </div>
       </div>
 
@@ -195,12 +258,38 @@ export default function UserManagement({ adminEmail }) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Change Role</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
                           {user.role !== 'admin' && (
-                            <DropdownMenuItem onClick={() => promoteToAdmin(user.id, user.email)}>
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'admin')}>
                               <Crown className="w-4 h-4 mr-2" />
-                              Promote to Admin
+                              Set as Admin
                             </DropdownMenuItem>
                           )}
+                          {user.role !== 'tester' && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'tester')}>
+                              <Code className="w-4 h-4 mr-2" />
+                              Set as Tester (Free Premium)
+                            </DropdownMenuItem>
+                          )}
+                          {user.role !== 'editor' && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'editor')}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Set as Editor
+                            </DropdownMenuItem>
+                          )}
+                          {user.role !== 'moderator' && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'moderator')}>
+                              <Shield className="w-4 h-4 mr-2" />
+                              Set as Moderator
+                            </DropdownMenuItem>
+                          )}
+                          {(user.role && user.role !== 'user') && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'user')}>
+                              Demote to User
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
                               navigator.clipboard.writeText(user.email);
@@ -220,6 +309,59 @@ export default function UserManagement({ adminEmail }) {
           </table>
         </div>
       </div>
+
+      {/* Role Change Confirmation Dialog */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Change User Role</DialogTitle>
+            <DialogDescription>
+              You're about to change the role for {selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm font-medium text-slate-900 dark:text-white mb-1 capitalize">
+                New Role: {newRole}
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                {getRoleDescription(newRole)}
+              </p>
+            </div>
+            
+            {newRole === 'tester' && (
+              <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">
+                  ⚡ Free Premium Access
+                </p>
+                <p className="text-xs text-purple-700 dark:text-purple-300">
+                  This user will automatically receive full Premium ($29.99/mo) access for free as long as they have the Tester role. No payment required.
+                </p>
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                Reason (optional, for activity log)
+              </label>
+              <Input
+                placeholder="e.g., Beta testing new features"
+                value={roleReason}
+                onChange={(e) => setRoleReason(e.target.value)}
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRoleDialog(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button onClick={confirmRoleChange} className="rounded-xl bg-violet-600 hover:bg-violet-700">
+              Confirm Change
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

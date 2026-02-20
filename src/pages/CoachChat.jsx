@@ -60,10 +60,18 @@ export default function CoachChat() {
     const convs = await base44.agents.listConversations({ agent_name: "iboGuide" });
     setConversations(convs);
     
-    // Check premium status
+    // Check premium status (or Tester role which grants free premium)
+    const user = await base44.auth.me();
     const profiles = await base44.entities.UserProfile.list();
-    if (profiles.length > 0) {
-      setIsPremium(profiles[0].premium || false);
+    const hasPremium = profiles.length > 0 && profiles[0].premium;
+    const isTester = user?.role === 'tester';
+    
+    // Check admin tier simulation
+    const simulatedTier = localStorage.getItem("adminTierSimulation");
+    if (simulatedTier) {
+      setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
+    } else {
+      setIsPremium(hasPremium || isTester);
     }
     
     // Count today's sessions for free tier limit
@@ -82,8 +90,18 @@ export default function CoachChat() {
   }
 
   async function startNewConversation() {
+    // Check tier simulation first
+    const simulatedTier = localStorage.getItem("adminTierSimulation");
+    let effectivePremium = isPremium;
+    
+    if (simulatedTier === "Free") {
+      effectivePremium = false;
+    } else if (simulatedTier === "Premium" || simulatedTier === "Standard") {
+      effectivePremium = true;
+    }
+    
     // Check free tier limit (5 sessions per day)
-    if (!isPremium && sessionCount >= 5) {
+    if (!effectivePremium && sessionCount >= 5) {
       setShowPremium(true);
       return;
     }
