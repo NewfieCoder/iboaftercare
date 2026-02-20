@@ -51,6 +51,7 @@ import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
 import CoachChat from './pages/CoachChat';
 import Progress from './pages/Progress';
+import Resources from './pages/Resources';
 import __Layout from './Layout.jsx';
 
 
@@ -59,6 +60,7 @@ export const PAGES = {
     "Home": Home,
     "CoachChat": CoachChat,
     "Progress": Progress,
+    "Resources": Resources,
 }
 
 export const pagesConfig = {
