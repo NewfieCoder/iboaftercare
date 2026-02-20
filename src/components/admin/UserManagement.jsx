@@ -112,7 +112,7 @@ export default function UserManagement({ adminEmail }) {
           <p className="text-sm text-slate-500 dark:text-slate-400">Total Users</p>
         </div>
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
-          <p className="text-2xl font-bold text-teal-600">{profiles.filter(p => p.premium).length}</p>
+          <p className="text-2xl font-bold text-teal-600">{users.filter(u => u.premium).length}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">Premium</p>
         </div>
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
