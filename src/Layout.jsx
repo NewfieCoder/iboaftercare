@@ -89,9 +89,22 @@ export default function Layout({ children, currentPageName }) {
               <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
                 <TreePine className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-slate-900 dark:text-white tracking-tight">
-                IboGuide
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 dark:text-white tracking-tight">
+                  IboGuide
+                </span>
+                {userRole && userRole !== 'user' && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    userRole === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
+                    userRole === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                    userRole === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                    userRole === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                    ''
+                  }`}>
+                    {userRole}
+                  </span>
+                )}
+              </div>
             </Link>
             <div className="flex items-center gap-4">
               <nav className="hidden lg:flex items-center gap-1">
