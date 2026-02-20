@@ -22,23 +22,26 @@ export default function UserManagement({ adminEmail }) {
   }, []);
 
   async function loadUsers() {
-    const [allUsers, allProfiles] = await Promise.all([
-      base44.asServiceRole.entities.User.list('-created_date'),
-      base44.asServiceRole.entities.UserProfile.list()
-    ]);
-    setUsers(allUsers);
-    setProfiles(allProfiles);
-    setLoading(false);
+    try {
+      const { data } = await base44.functions.invoke('adminGetUsers');
+      setUsers(data || []);
+      setProfiles([]);
+      setLoading(false);
+    } catch (e) {
+      toast.error("Failed to load users");
+      setLoading(false);
+    }
   }
 
   async function promoteToAdmin(userId, userEmail) {
     try {
-      await base44.asServiceRole.entities.User.update(userId, { role: 'admin' });
-      await base44.entities.AdminActivityLog.create({
-        admin_email: adminEmail,
-        action_type: 'user_promoted',
-        details: `Promoted ${userEmail} to admin`,
-        target_entity_id: userId
+      await base44.functions.invoke('adminUpdateUser', {
+        userId,
+        updates: { role: 'admin' },
+        logAction: {
+          type: 'user_promoted',
+          details: `Promoted ${userEmail} to admin`
+        }
       });
       toast.success("User promoted to admin");
       loadUsers();
