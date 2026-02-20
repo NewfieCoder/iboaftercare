@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import CrisisFooter from "@/components/CrisisFooter";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import NavigationMenu from "@/components/NavigationMenu";
+import SimulationBanner from "@/components/SimulationBanner";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -53,6 +54,7 @@ export default function Layout({ children, currentPageName }) {
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300`}>
       <OfflineIndicator />
+      <SimulationBanner />
       <style>{`
         :root {
           --color-primary: #0D9488;
