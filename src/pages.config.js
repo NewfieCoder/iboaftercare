@@ -49,12 +49,14 @@
  */
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
+import CoachChat from './pages/CoachChat';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Onboarding": Onboarding,
     "Home": Home,
+    "CoachChat": CoachChat,
 }
 
 export const pagesConfig = {
