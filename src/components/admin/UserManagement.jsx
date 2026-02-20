@@ -146,7 +146,6 @@ export default function UserManagement({ adminEmail }) {
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredUsers.map((user) => {
-                const profile = profiles.find(p => p.created_by === user.email);
                 return (
                   <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -161,7 +160,7 @@ export default function UserManagement({ adminEmail }) {
                       {new Date(user.created_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {profile?.premium ? (
+                      {user.premium ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                           <Crown className="w-3 h-3" />
                           Premium
