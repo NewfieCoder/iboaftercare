@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DiscountCodeInput from "./DiscountCodeInput";
 
 export default function PremiumUpsell({ onClose, feature = "this feature" }) {
+  const [discount, setDiscount] = useState(null);
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-8 relative">
@@ -32,10 +35,31 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
         </div>
 
         <div className="text-center mb-6">
-          <p className="text-3xl font-bold text-slate-900 dark:text-white">
-            $9.99<span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span>
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Cancel anytime</p>
+          {discount ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <p className="text-xl font-bold text-slate-400 dark:text-slate-500 line-through">$9.99</p>
+                <p className="text-3xl font-bold text-teal-600 dark:text-teal-400">
+                  ${(9.99 * (1 - discount.discount_percent / 100)).toFixed(2)}
+                </p>
+              </div>
+              <p className="text-sm text-teal-700 dark:text-teal-400 font-medium mb-1">
+                {discount.discount_percent}% off applied!
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">per month • Cancel anytime</p>
+            </>
+          ) : (
+            <>
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                $9.99<span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span>
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Cancel anytime</p>
+            </>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <DiscountCodeInput onSuccess={(code) => setDiscount(code)} />
         </div>
 
         <Button className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold py-6">
