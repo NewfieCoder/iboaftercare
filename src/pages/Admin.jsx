@@ -12,6 +12,7 @@ import ContentManagement from "@/components/admin/ContentManagement";
 import MonetizationControls from "@/components/admin/MonetizationControls";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import ForumModeration from "@/components/admin/ForumModeration";
+import TierSimulator from "@/components/admin/TierSimulator";
 
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -105,7 +106,12 @@ export default function AdminPanel() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {activeTab === "dashboard" && <AnalyticsDashboard />}
+        {activeTab === "dashboard" && (
+          <div className="space-y-6">
+            <AnalyticsDashboard />
+            <TierSimulator />
+          </div>
+        )}
         {activeTab === "users" && <UserManagement adminEmail={user.email} />}
         {activeTab === "content" && <ContentManagement adminEmail={user.email} />}
         {activeTab === "monetization" && <MonetizationControls adminEmail={user.email} />}
