@@ -4,6 +4,7 @@ import MoodChart from "@/components/progress/MoodChart";
 import JournalSection from "@/components/progress/JournalSection";
 import GoalsSection from "@/components/progress/GoalsSection";
 import HabitManager from "@/components/progress/HabitManager";
+import MoodPatternAnalysis from "@/components/progress/MoodPatternAnalysis";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 
 const tabs = [
@@ -58,6 +59,7 @@ export default function Progress() {
               </div>
             </div>
           </div>
+          <MoodPatternAnalysis />
           <DisclaimerBanner compact />
         </div>
       )}
