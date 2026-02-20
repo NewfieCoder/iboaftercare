@@ -15,6 +15,7 @@ export default function Home() {
   const [profile, setProfile] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -26,10 +27,20 @@ export default function Home() {
         return;
       }
       setProfile(profiles[0]);
+      // Show tutorial if first time (check a flag in profile or localStorage)
+      const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+      if (!hasSeenTutorial) {
+        setShowTutorial(true);
+      }
       setLoading(false);
     }
     init();
   }, []);
+
+  const completeTutorial = () => {
+    localStorage.setItem("hasSeenTutorial", "true");
+    setShowTutorial(false);
+  };
 
   if (loading) {
     return (
