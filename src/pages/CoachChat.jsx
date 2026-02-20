@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Send, Plus, Sparkles, Loader2, History, ArrowLeft } from "lucide-react";
+import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Crown } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import CrisisRedirect from "@/components/CrisisRedirect";
+import PremiumUpsell from "@/components/PremiumUpsell";
 
 const SUGGESTED_PROMPTS = [
   "How am I doing this week?",
@@ -23,6 +24,9 @@ export default function CoachChat() {
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -46,6 +50,20 @@ export default function CoachChat() {
   async function loadConversations() {
     const convs = await base44.agents.listConversations({ agent_name: "iboGuide" });
     setConversations(convs);
+    
+    // Check premium status
+    const profiles = await base44.entities.UserProfile.list();
+    if (profiles.length > 0) {
+      setIsPremium(profiles[0].premium || false);
+    }
+    
+    // Count today's sessions for free tier limit
+    const today = new Date().toDateString();
+    const todaySessions = convs.filter(c => 
+      new Date(c.created_date).toDateString() === today
+    );
+    setSessionCount(todaySessions.length);
+    
     if (convs.length > 0) {
       const latest = await base44.agents.getConversation(convs[0].id);
       setCurrentConv(latest);
@@ -55,6 +73,12 @@ export default function CoachChat() {
   }
 
   async function startNewConversation() {
+    // Check free tier limit (5 sessions per day)
+    if (!isPremium && sessionCount >= 5) {
+      setShowPremium(true);
+      return;
+    }
+    
     const conv = await base44.agents.createConversation({
       agent_name: "iboGuide",
       metadata: { name: `Session - ${new Date().toLocaleDateString()}` },
@@ -63,6 +87,7 @@ export default function CoachChat() {
     setMessages([]);
     setShowHistory(false);
     setConversations(prev => [conv, ...prev]);
+    setSessionCount(prev => prev + 1);
   }
 
   async function sendMessage(text) {
@@ -147,6 +172,7 @@ export default function CoachChat() {
   return (
     <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)]">
       {showCrisis && <CrisisRedirect onClose={() => setShowCrisis(false)} />}
+      {showPremium && <PremiumUpsell onClose={() => setShowPremium(false)} feature="unlimited AI coach sessions" />}
 
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/50">
@@ -156,10 +182,20 @@ export default function CoachChat() {
           </div>
           <div>
             <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide</h2>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">AI Aftercare Coach</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400">
+              {isPremium ? "Premium" : `${sessionCount}/5 daily sessions`}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {!isPremium && (
+            <button
+              onClick={() => setShowPremium(true)}
+              className="p-2 rounded-xl text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              <Crown className="w-5 h-5" />
+            </button>
+          )}
           <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <History className="w-5 h-5" />
           </button>

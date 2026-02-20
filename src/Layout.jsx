@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { Home, MessageCircle, TrendingUp, BookOpen, Settings, TreePine } from "lucide-react";
+import { Home, MessageCircle, TrendingUp, BookOpen, Settings, TreePine, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { name: "Coach", icon: MessageCircle, page: "CoachChat" },
   { name: "Progress", icon: TrendingUp, page: "Progress" },
   { name: "Resources", icon: BookOpen, page: "Resources" },
+  { name: "Community", icon: Users, page: "Community" },
   { name: "Settings", icon: Settings, page: "ProfileSettings" },
 ];
 

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -157,23 +159,15 @@ export default function ProfileSettings() {
 
       {/* Privacy & Legal */}
       <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-700/50">
-        <button onClick={() => setShowPrivacy(!showPrivacy)} className="w-full flex items-center justify-between p-4">
+        <Link to={createPageUrl("Privacy")} className="w-full flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
               <Shield className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             </div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">Privacy Policy</p>
           </div>
-          <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${showPrivacy ? "rotate-90" : ""}`} />
-        </button>
-        {showPrivacy && (
-          <div className="p-4 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-2">
-            <p><strong>Data Privacy:</strong> IboAftercare Coach does not store sensitive health information beyond what you voluntarily provide. All data can be deleted at any time.</p>
-            <p><strong>AI Interactions:</strong> Conversations with IboGuide may be used to improve response quality but are not shared with third parties.</p>
-            <p><strong>Your Rights:</strong> You can export or delete all your data at any time using the controls below.</p>
-            <p><strong>Security:</strong> All data is encrypted in transit and at rest. We follow industry-standard security practices.</p>
-          </div>
-        )}
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </Link>
       </div>
 
       {/* Danger Zone */}
