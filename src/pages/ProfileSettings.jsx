@@ -4,8 +4,10 @@ import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight } from "lucide-react";
+import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Crown, Code, Eye } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import BetaFeedbackForm from "@/components/BetaFeedbackForm";
+import TierSimulator from "@/components/admin/TierSimulator";
 
 export default function ProfileSettings() {
   const [user, setUser] = useState(null);
@@ -78,9 +80,37 @@ export default function ProfileSettings() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
             <User className="w-7 h-7 text-white" />
           </div>
-          <div>
-            <p className="font-semibold text-slate-900 dark:text-white">{user?.full_name || "User"}</p>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-semibold text-slate-900 dark:text-white">{user?.full_name || "User"}</p>
+              {user?.role && user.role !== 'user' && (
+                <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  user.role === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
+                  user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                  user.role === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                  user.role === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                  ''
+                }`}>
+                  {user.role === 'admin' && <Crown className="w-3 h-3" />}
+                  {user.role === 'tester' && <Code className="w-3 h-3" />}
+                  {user.role === 'moderator' && <Shield className="w-3 h-3" />}
+                  {user.role === 'editor' && <Eye className="w-3 h-3" />}
+                  {user.role}
+                </span>
+              )}
+              {profile?.premium && (
+                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                  <Crown className="w-3 h-3" />
+                  Premium
+                </span>
+              )}
+            </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
+            {user?.role === 'tester' && (
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
+                🧪 Free Premium Access (Testing)
+              </p>
+            )}
             {profile?.treatment_date && (
               <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                 Treatment: {new Date(profile.treatment_date).toLocaleDateString()}
@@ -170,6 +200,12 @@ export default function ProfileSettings() {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
       </div>
+
+      {/* Beta Feedback */}
+      <BetaFeedbackForm user={user} />
+
+      {/* Admin Tier Simulator */}
+      {user?.role === 'admin' && <TierSimulator />}
 
       {/* Admin Panel Access */}
       {user?.role === 'admin' && (

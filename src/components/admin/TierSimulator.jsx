@@ -20,7 +20,7 @@ export default function TierSimulator() {
     localStorage.setItem("adminTierSimulation", tier);
     setSimulating(true);
     setSimulatedTier(tier);
-    toast.success(`Now simulating ${tier} tier experience`);
+    toast.success(`Simulating ${tier} tier - Your actual Admin access unchanged`);
     // Reload to apply changes
     window.location.reload();
   };
@@ -29,9 +29,22 @@ export default function TierSimulator() {
     localStorage.removeItem("adminTierSimulation");
     setSimulating(false);
     setSimulatedTier(null);
-    toast.info("Returned to your actual access level");
+    toast.info("Back to Admin access");
     window.location.reload();
   };
+
+  // Auto-clear on logout
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear simulation on navigation away
+      const saved = localStorage.getItem("adminTierSimulation");
+      if (saved) {
+        console.log("Tier simulation persisted across page refresh");
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6">

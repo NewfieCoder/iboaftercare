@@ -56,12 +56,12 @@ import ModeratorDashboard from './pages/ModeratorDashboard';
 import Onboarding from './pages/Onboarding';
 import PrepToolkit from './pages/PrepToolkit';
 import Privacy from './pages/Privacy';
-import ProfileSettings from './pages/ProfileSettings';
 import Progress from './pages/Progress';
 import Resources from './pages/Resources';
 import StudyLibrary from './pages/StudyLibrary';
 import TesterFeedback from './pages/TesterFeedback';
 import WellnessPlanner from './pages/WellnessPlanner';
+import ProfileSettings from './pages/ProfileSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -75,12 +75,12 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "PrepToolkit": PrepToolkit,
     "Privacy": Privacy,
-    "ProfileSettings": ProfileSettings,
     "Progress": Progress,
     "Resources": Resources,
     "StudyLibrary": StudyLibrary,
     "TesterFeedback": TesterFeedback,
     "WellnessPlanner": WellnessPlanner,
+    "ProfileSettings": ProfileSettings,
 }
 
 export const pagesConfig = {
