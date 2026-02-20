@@ -56,6 +56,9 @@ import Privacy from './pages/Privacy';
 import ProfileSettings from './pages/ProfileSettings';
 import Progress from './pages/Progress';
 import Resources from './pages/Resources';
+import PrepToolkit from './pages/PrepToolkit';
+import WellnessPlanner from './pages/WellnessPlanner';
+import StudyLibrary from './pages/StudyLibrary';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +72,9 @@ export const PAGES = {
     "ProfileSettings": ProfileSettings,
     "Progress": Progress,
     "Resources": Resources,
+    "PrepToolkit": PrepToolkit,
+    "WellnessPlanner": WellnessPlanner,
+    "StudyLibrary": StudyLibrary,
 }
 
 export const pagesConfig = {
