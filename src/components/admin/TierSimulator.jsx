@@ -29,21 +29,9 @@ export default function TierSimulator() {
     localStorage.removeItem("adminTierSimulation");
     setSimulating(false);
     setSimulatedTier(null);
-    toast.info("Returned to your actual Admin access level");
+    toast.info("Returned to your actual access level");
     window.location.reload();
   };
-
-  // Auto-reset on mount if needed
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && simulating) {
-        // User navigated away - could clear simulation
-        // Keeping it for now for testing convenience
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [simulating]);
 
   return (
     <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6">
