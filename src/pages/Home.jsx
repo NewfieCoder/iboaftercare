@@ -7,6 +7,7 @@ import MoodWidget from "@/components/dashboard/MoodWidget";
 import HabitWidget from "@/components/dashboard/HabitWidget";
 import QuickActions from "@/components/dashboard/QuickActions";
 import MilestoneCard from "@/components/dashboard/MilestoneCard";
+import WelcomeTutorial from "@/components/WelcomeTutorial";
 import { Loader2 } from "lucide-react";
 
 export default function Home() {
