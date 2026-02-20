@@ -82,7 +82,7 @@ export default function Home() {
       </div>
 
       {/* Milestone */}
-      <MilestoneCard treatmentDate={profile?.treatment_date} />
+      <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
 
       {/* Integration Calendar */}
       <IntegrationCalendar />

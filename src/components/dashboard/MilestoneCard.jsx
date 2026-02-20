@@ -1,11 +1,12 @@
 import { Award, Calendar } from "lucide-react";
 
-export default function MilestoneCard({ treatmentDate }) {
+export default function MilestoneCard({ treatmentDate, userType }) {
   if (!treatmentDate) return null;
 
   const start = new Date(treatmentDate);
   const now = new Date();
-  const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  const isPreTreatment = userType === "pre-treatment";
+  const days = Math.abs(Math.floor((now - start) / (1000 * 60 * 60 * 24)));
   const weeks = Math.floor(days / 7);
   const months = Math.floor(days / 30);
 
@@ -46,7 +47,9 @@ export default function MilestoneCard({ treatmentDate }) {
       <div className="flex items-end justify-between">
         <div>
           <p className="text-4xl font-bold">{days}</p>
-          <p className="text-sm opacity-80">days since treatment</p>
+          <p className="text-sm opacity-80">
+            {isPreTreatment ? "days until treatment" : "days since treatment"}
+          </p>
         </div>
         <div className="text-right">
           <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5">
