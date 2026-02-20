@@ -81,10 +81,21 @@ export default function NavigationMenu({ currentPageName }) {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="capitalize text-xs">
+          <Badge variant="secondary" className={`capitalize text-xs ${
+            user?.role === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
+            user?.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+            user?.role === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+            user?.role === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : ''
+          }`}>
             {user?.role || "user"}
           </Badge>
-          {profile?.premium && (
+          {user?.role === 'tester' && (
+            <Badge className="gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              <Crown className="w-3 h-3" />
+              Free Premium
+            </Badge>
+          )}
+          {profile?.premium && user?.role !== 'tester' && (
             <Badge className="gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
               <Crown className="w-3 h-3" />
               {profile.premium_tier === "premium" ? "Premium" : "Standard"}
