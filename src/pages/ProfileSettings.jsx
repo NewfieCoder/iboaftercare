@@ -170,6 +170,25 @@ export default function ProfileSettings() {
         </Link>
       </div>
 
+      {/* Admin Panel Access */}
+      {user?.role === 'admin' && (
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20 rounded-2xl border border-violet-200 dark:border-violet-800 p-5">
+          <h3 className="font-semibold text-sm text-violet-900 dark:text-violet-200 mb-3 flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Administrator Tools
+          </h3>
+          <p className="text-sm text-violet-700 dark:text-violet-300 mb-3">
+            You have admin access. Manage users, content, and monetization.
+          </p>
+          <Button
+            onClick={() => navigate(createPageUrl("Admin"))}
+            className="w-full rounded-xl bg-violet-600 hover:bg-violet-700"
+          >
+            Open Admin Panel
+          </Button>
+        </div>
+      )}
+
       {/* Crisis Resources */}
       <div className="bg-rose-50 dark:bg-rose-950/30 rounded-2xl border border-rose-200 dark:border-rose-800 p-5">
         <h3 className="font-semibold text-sm text-rose-900 dark:text-rose-200 mb-3">Crisis Resources</h3>

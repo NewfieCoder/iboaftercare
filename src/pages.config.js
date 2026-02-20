@@ -47,26 +47,28 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Onboarding from './pages/Onboarding';
-import Home from './pages/Home';
 import CoachChat from './pages/CoachChat';
+import Community from './pages/Community';
+import Home from './pages/Home';
+import Onboarding from './pages/Onboarding';
+import Privacy from './pages/Privacy';
+import ProfileSettings from './pages/ProfileSettings';
 import Progress from './pages/Progress';
 import Resources from './pages/Resources';
-import ProfileSettings from './pages/ProfileSettings';
-import Community from './pages/Community';
-import Privacy from './pages/Privacy';
+import Admin from './pages/Admin';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Onboarding": Onboarding,
-    "Home": Home,
     "CoachChat": CoachChat,
+    "Community": Community,
+    "Home": Home,
+    "Onboarding": Onboarding,
+    "Privacy": Privacy,
+    "ProfileSettings": ProfileSettings,
     "Progress": Progress,
     "Resources": Resources,
-    "ProfileSettings": ProfileSettings,
-    "Community": Community,
-    "Privacy": Privacy,
+    "Admin": Admin,
 }
 
 export const pagesConfig = {
