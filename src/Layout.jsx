@@ -5,6 +5,7 @@ import { Home, MessageCircle, TrendingUp, BookOpen, Settings, TreePine, Users } 
 import { base44 } from "@/api/base44Client";
 import CrisisFooter from "@/components/CrisisFooter";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import NavigationMenu from "@/components/NavigationMenu";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -79,34 +80,37 @@ export default function Layout({ children, currentPageName }) {
 
       {!hideNav && (
         <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
-          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
                 <TreePine className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-slate-900 dark:text-white tracking-tight">
-                IboAftercare
+                IboGuide
               </span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
-                const isActive = currentPageName === item.page;
-                return (
-                  <Link
-                    key={item.page}
-                    to={createPageUrl(item.page)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className="flex items-center gap-4">
+              <nav className="hidden lg:flex items-center gap-1">
+                {navItems.map((item) => {
+                  const isActive = currentPageName === item.page;
+                  return (
+                    <Link
+                      key={item.page}
+                      to={createPageUrl(item.page)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+              <NavigationMenu currentPageName={currentPageName} />
+            </div>
           </div>
         </header>
       )}

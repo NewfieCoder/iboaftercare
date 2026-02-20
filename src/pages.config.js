@@ -59,6 +59,9 @@ import Resources from './pages/Resources';
 import PrepToolkit from './pages/PrepToolkit';
 import WellnessPlanner from './pages/WellnessPlanner';
 import StudyLibrary from './pages/StudyLibrary';
+import ModeratorDashboard from './pages/ModeratorDashboard';
+import EditorDashboard from './pages/EditorDashboard';
+import TesterFeedback from './pages/TesterFeedback';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +78,9 @@ export const PAGES = {
     "PrepToolkit": PrepToolkit,
     "WellnessPlanner": WellnessPlanner,
     "StudyLibrary": StudyLibrary,
+    "ModeratorDashboard": ModeratorDashboard,
+    "EditorDashboard": EditorDashboard,
+    "TesterFeedback": TesterFeedback,
 }
 
 export const pagesConfig = {

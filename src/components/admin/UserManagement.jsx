@@ -172,9 +172,15 @@ export default function UserManagement({ adminEmail }) {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium capitalize ${
                         user.role === 'admin'
                           ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400"
+                          : user.role === 'moderator'
+                          ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                          : user.role === 'editor'
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                          : user.role === 'tester'
+                          ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                       }`}>
                         {user.role === 'admin' && <Crown className="w-3 h-3" />}
