@@ -50,18 +50,18 @@
 import Admin from './pages/Admin';
 import CoachChat from './pages/CoachChat';
 import Community from './pages/Community';
+import EditorDashboard from './pages/EditorDashboard';
 import Home from './pages/Home';
+import ModeratorDashboard from './pages/ModeratorDashboard';
 import Onboarding from './pages/Onboarding';
+import PrepToolkit from './pages/PrepToolkit';
 import Privacy from './pages/Privacy';
 import ProfileSettings from './pages/ProfileSettings';
 import Progress from './pages/Progress';
 import Resources from './pages/Resources';
-import PrepToolkit from './pages/PrepToolkit';
-import WellnessPlanner from './pages/WellnessPlanner';
 import StudyLibrary from './pages/StudyLibrary';
-import ModeratorDashboard from './pages/ModeratorDashboard';
-import EditorDashboard from './pages/EditorDashboard';
 import TesterFeedback from './pages/TesterFeedback';
+import WellnessPlanner from './pages/WellnessPlanner';
 import __Layout from './Layout.jsx';
 
 
@@ -69,18 +69,18 @@ export const PAGES = {
     "Admin": Admin,
     "CoachChat": CoachChat,
     "Community": Community,
+    "EditorDashboard": EditorDashboard,
     "Home": Home,
+    "ModeratorDashboard": ModeratorDashboard,
     "Onboarding": Onboarding,
+    "PrepToolkit": PrepToolkit,
     "Privacy": Privacy,
     "ProfileSettings": ProfileSettings,
     "Progress": Progress,
     "Resources": Resources,
-    "PrepToolkit": PrepToolkit,
-    "WellnessPlanner": WellnessPlanner,
     "StudyLibrary": StudyLibrary,
-    "ModeratorDashboard": ModeratorDashboard,
-    "EditorDashboard": EditorDashboard,
     "TesterFeedback": TesterFeedback,
+    "WellnessPlanner": WellnessPlanner,
 }
 
 export const pagesConfig = {

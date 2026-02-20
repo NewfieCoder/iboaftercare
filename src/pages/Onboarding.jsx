@@ -251,8 +251,9 @@ export default function Onboarding() {
   ];
 
   const canProceed = () => {
-    if (step === 1) return confirmed && treatmentDate;
-    if (step === 2) return primaryReason;
+    if (step === 1) return userType !== "";
+    if (step === 2) return confirmed && treatmentDate;
+    if (step === 3) return primaryReason;
     return true;
   };
 
