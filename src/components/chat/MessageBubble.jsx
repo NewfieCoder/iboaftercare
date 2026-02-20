@@ -1,0 +1,74 @@
+import ReactMarkdown from "react-markdown";
+import { TreePine, User, Zap, CheckCircle2, Loader2, ChevronRight, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+
+function FunctionDisplay({ toolCall }) {
+  const [expanded, setExpanded] = useState(false);
+  const name = toolCall?.name || "Function";
+  const status = toolCall?.status || "pending";
+  const isRunning = status === "running" || status === "in_progress";
+
+  const formattedName = name.split(".").pop().replace(/([A-Z])/g, " $1").trim().toLowerCase();
+
+  return (
+    <button
+      onClick={() => setExpanded(!expanded)}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors mt-1"
+    >
+      {isRunning ? (
+        <Loader2 className="w-3 h-3 animate-spin text-teal-500" />
+      ) : status === "completed" || status === "success" ? (
+        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+      ) : (
+        <Clock className="w-3 h-3 text-slate-400" />
+      )}
+      <span>{formattedName}</span>
+      {!isRunning && <ChevronRight className={cn("w-3 h-3 transition-transform", expanded && "rotate-90")} />}
+    </button>
+  );
+}
+
+export default function MessageBubble({ message }) {
+  const isUser = message.role === "user";
+
+  return (
+    <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+      {!isUser && (
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+          <TreePine className="w-4 h-4 text-white" />
+        </div>
+      )}
+      <div className={cn("max-w-[85%]", isUser && "flex flex-col items-end")}>
+        {message.content && (
+          <div className={cn(
+            "rounded-2xl px-4 py-3",
+            isUser
+              ? "bg-teal-600 text-white rounded-br-md"
+              : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-bl-md"
+          )}>
+            {isUser ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              <ReactMarkdown className="text-sm prose prose-sm prose-slate dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {message.content}
+              </ReactMarkdown>
+            )}
+          </div>
+        )}
+        {message.tool_calls?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {message.tool_calls.map((tc, i) => (
+              <FunctionDisplay key={i} toolCall={tc} />
+            ))}
+          </div>
+        )}
+      </div>
+      {isUser && (
+        <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+          <User className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+        </div>
+      )}
+    </div>
+  );
+}
