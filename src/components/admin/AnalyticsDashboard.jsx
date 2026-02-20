@@ -71,6 +71,14 @@ export default function AnalyticsDashboard() {
     );
   }
 
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-slate-500 dark:text-slate-400">Unable to load analytics. Please try again.</p>
+      </div>
+    );
+  }
+
   const statCards = [
     { label: "Total Users", value: stats.totalUsers, icon: Users, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/20" },
     { label: "Active (7d)", value: stats.activeUsers, icon: Activity, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
