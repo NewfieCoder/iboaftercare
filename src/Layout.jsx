@@ -111,32 +111,40 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-14 pb-20 md:pb-6" : ""}`}>
+      <main className={`${!hideNav ? "pt-14 pb-32 md:pb-6" : ""}`}>
         {children}
       </main>
 
       {!hideNav && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 safe-area-bottom">
-          <div className="flex items-center justify-around px-2 py-2">
-            {navItems.map((item) => {
-              const isActive = currentPageName === item.page;
-              return (
-                <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
-                    isActive
-                      ? "text-teal-600 dark:text-teal-400"
-                      : "text-slate-400 dark:text-slate-500"
-                  }`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? "scale-110" : ""} transition-transform`} />
-                  <span className="text-[10px] font-medium">{item.name}</span>
-                </Link>
-              );
-            })}
+        <>
+          <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
+            <CrisisFooter />
           </div>
-        </nav>
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 safe-area-bottom">
+            <div className="flex items-center justify-around px-2 py-2">
+              {navItems.map((item) => {
+                const isActive = currentPageName === item.page;
+                return (
+                  <Link
+                    key={item.page}
+                    to={createPageUrl(item.page)}
+                    className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
+                      isActive
+                        ? "text-teal-600 dark:text-teal-400"
+                        : "text-slate-400 dark:text-slate-500"
+                    }`}
+                  >
+                    <item.icon className={`w-5 h-5 ${isActive ? "scale-110" : ""} transition-transform`} />
+                    <span className="text-[10px] font-medium">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+          <div className="hidden md:block fixed bottom-0 left-0 right-0 z-30">
+            <CrisisFooter />
+          </div>
+        </>
       )}
     </div>
   );
