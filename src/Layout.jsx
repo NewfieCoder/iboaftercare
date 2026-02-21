@@ -53,10 +53,41 @@ export default function Layout({ children, currentPageName }) {
   }, [darkMode]);
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300`}>
+    <div className={`min-h-screen transition-colors duration-300 relative overflow-hidden`}>
+      {/* Nature-inspired background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />
+
+        {/* Subtle plant silhouettes */}
+        <div className="absolute bottom-0 left-0 w-64 h-96 opacity-20 dark:opacity-10">
+          <svg viewBox="0 0 200 400" className="w-full h-full">
+            <path d="M20,400 Q30,350 25,300 T20,200 Q25,150 20,100" stroke="#2F4F4F" strokeWidth="2" fill="none" opacity="0.3"/>
+            <circle cx="15" cy="280" r="8" fill="#2F4F4F" opacity="0.2"/>
+            <circle cx="25" cy="260" r="6" fill="#2F4F4F" opacity="0.2"/>
+            <path d="M50,400 L60,350 Q65,320 60,290" stroke="#2F4F4F" strokeWidth="1.5" fill="none" opacity="0.25"/>
+          </svg>
+        </div>
+
+        <div className="absolute bottom-0 right-0 w-64 h-96 opacity-20 dark:opacity-10">
+          <svg viewBox="0 0 200 400" className="w-full h-full">
+            <path d="M180,400 Q170,350 175,300 T180,200 Q175,150 180,100" stroke="#2F4F4F" strokeWidth="2" fill="none" opacity="0.3"/>
+            <circle cx="185" cy="280" r="8" fill="#2F4F4F" opacity="0.2"/>
+            <circle cx="175" cy="260" r="6" fill="#2F4F4F" opacity="0.2"/>
+          </svg>
+        </div>
+
+        {/* Golden accent lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-30 dark:opacity-20" preserveAspectRatio="none">
+          <path d="M-50,100 Q200,150 400,80 T900,120" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.4"/>
+          <path d="M-100,300 Q250,350 500,280 T1000,320" stroke="#D4AF37" strokeWidth="1.5" fill="none" opacity="0.3"/>
+        </svg>
+      </div>
+
       <OfflineIndicator />
       <SimulationBanner />
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500;600;700&display=swap');
+
         :root {
           --color-primary: #0D9488;
           --color-primary-light: #5EEAD4;
@@ -83,10 +114,27 @@ export default function Layout({ children, currentPageName }) {
         .dark .scrollbar-thin::-webkit-scrollbar-thumb {
           background: #475569;
         }
+
+        /* Glassmorphism utility */
+        .glass {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Elegant serif for headings */
+        h1, h2, h3, .serif-heading {
+          font-family: 'Cormorant', serif;
+        }
       `}</style>
 
       {!hideNav && (
-        <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
+        <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10">
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
               <Logo variant="icon" className="w-8 h-8" />
@@ -142,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 safe-area-bottom">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 safe-area-bottom">
             <div className="flex items-center justify-around px-2 py-2">
               {navItems.map((item) => {
                 const isActive = currentPageName === item.page;

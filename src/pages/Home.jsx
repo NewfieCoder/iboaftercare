@@ -81,12 +81,12 @@ export default function Home() {
         {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
 
         {/* Greeting */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            {greeting()}, {firstName} 🌿
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight mb-1" style={{ fontFamily: "'Cormorant', serif" }}>
+            {greeting()}, {firstName}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Here's your recovery overview for today.
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Your recovery journey for today
           </p>
         </div>
 
@@ -149,8 +149,8 @@ function DailyTip({ profile }) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-violet-50 to-blue-50 dark:from-violet-950/20 dark:to-blue-950/20 rounded-2xl p-5 border border-violet-100 dark:border-violet-900/50">
-      <p className="text-xs font-medium text-violet-600 dark:text-violet-400 mb-2">💡 Daily Insight</p>
+    <div className="glass rounded-2xl p-5 border border-white/30 dark:border-white/10 shadow-lg">
+      <p className="text-xs font-medium text-teal-700 dark:text-teal-400 mb-2">💡 Daily Insight</p>
       <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{tip?.tip}</p>
     </div>
   );

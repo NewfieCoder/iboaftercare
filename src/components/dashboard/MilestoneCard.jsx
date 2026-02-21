@@ -39,25 +39,25 @@ export default function MilestoneCard({ treatmentDate, userType }) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-5 text-white">
-      <div className="flex items-center gap-2 mb-3 opacity-80">
+    <div className="glass rounded-3xl p-6 text-slate-800 dark:text-white border border-white/30 dark:border-white/10 shadow-xl">
+      <div className="flex items-center gap-2 mb-3 opacity-70">
         <Calendar className="w-4 h-4" />
         <span className="text-xs font-medium">Recovery Journey</span>
       </div>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-4xl font-bold">{days}</p>
-          <p className="text-sm opacity-80">
+          <p className="text-4xl font-bold text-teal-700 dark:text-teal-300">{days}</p>
+          <p className="text-sm opacity-70">
             {isPreTreatment ? "days until treatment" : "days since treatment"}
           </p>
         </div>
         <div className="text-right">
-          <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5">
-            <Award className="w-4 h-4" />
-            <span className="text-sm font-medium">{milestone}</span>
+          <div className="flex items-center gap-1.5 bg-teal-100/50 dark:bg-teal-900/30 rounded-full px-3 py-1.5">
+            <Award className="w-4 h-4 text-teal-700 dark:text-teal-300" />
+            <span className="text-sm font-medium text-teal-700 dark:text-teal-300">{milestone}</span>
           </div>
           {nextMilestone && (
-            <p className="text-xs opacity-70 mt-2">{daysToNext}d to {nextMilestone}</p>
+            <p className="text-xs opacity-60 mt-2">{daysToNext}d to {nextMilestone}</p>
           )}
         </div>
       </div>
