@@ -80,33 +80,33 @@ export default function Home() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
         {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
 
-      {/* Greeting */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          {greeting()}, {firstName} 🌿
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Here's your recovery overview for today.
-        </p>
-      </div>
+        {/* Greeting */}
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {greeting()}, {firstName} 🌿
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Here's your recovery overview for today.
+          </p>
+        </div>
 
-      {/* Milestone */}
-      <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
+        {/* Milestone */}
+        <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
 
-      {/* Integration Calendar */}
-      <IntegrationCalendar />
+        {/* Integration Calendar */}
+        <IntegrationCalendar />
 
-      {/* Quick Actions */}
-      <QuickActions />
+        {/* Quick Actions */}
+        <QuickActions />
 
-      {/* Mood & Habits */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <MoodWidget />
-        <HabitWidget />
-      </div>
+        {/* Mood & Habits */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <MoodWidget />
+          <HabitWidget />
+        </div>
 
-      {/* Daily Tip */}
-      <DailyTip profile={profile} />
+        {/* Daily Tip */}
+        <DailyTip profile={profile} />
 
         {/* Disclaimer */}
         <DisclaimerBanner compact />
