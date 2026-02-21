@@ -208,7 +208,7 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-14 md:pt-14 pb-32 md:pb-6" : ""}`}>
+      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-24 md:pb-20" : ""}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
