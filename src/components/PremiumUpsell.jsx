@@ -2,9 +2,31 @@ import { useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DiscountCodeInput from "./DiscountCodeInput";
+import { base44 } from "@/api/base44Client";
 
 export default function PremiumUpsell({ onClose, feature = "this feature" }) {
   const [discount, setDiscount] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async (tier) => {
+    if (window.self !== window.top) {
+      alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await base44.functions.invoke('createCheckoutSession', { tier });
+      
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Unable to start checkout. Please try again.');
+      setLoading(false);
+    }
+  };
   return (
     <div 
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
@@ -40,39 +62,60 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
           <PremiumFeature text="Priority support" />
         </div>
 
-        <div className="text-center mb-6">
-          {discount ? (
-            <>
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <p className="text-xl font-bold text-slate-400 dark:text-slate-500 line-through">$9.99</p>
-                <p className="text-3xl font-bold text-teal-600 dark:text-teal-400">
-                  ${(9.99 * (1 - discount.discount_percent / 100)).toFixed(2)}
-                </p>
-              </div>
-              <p className="text-sm text-teal-700 dark:text-teal-400 font-medium mb-1">
-                {discount.discount_percent}% off applied!
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">per month • Cancel anytime</p>
-            </>
-          ) : (
-            <>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                $9.99<span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span>
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Cancel anytime</p>
-            </>
-          )}
-        </div>
-
         <div className="mb-4">
           <DiscountCodeInput onSuccess={(code) => setDiscount(code)} />
         </div>
 
-        <Button className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold py-6">
-          Upgrade Now
-        </Button>
+        <div className="space-y-3">
+          <div className="text-center">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Premium Plan</p>
+            {discount ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <p className="text-xl font-bold text-slate-400 dark:text-slate-500 line-through">$29.99</p>
+                  <p className="text-3xl font-bold text-teal-600 dark:text-teal-400">
+                    ${(29.99 * (1 - discount.discount_percent / 100)).toFixed(2)}
+                  </p>
+                </div>
+                <p className="text-sm text-teal-700 dark:text-teal-400 font-medium">
+                  {discount.discount_percent}% off applied!
+                </p>
+              </>
+            ) : (
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                $29.99<span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span>
+              </p>
+            )}
+          </div>
+
+          <Button 
+            onClick={() => handleUpgrade('premium')}
+            disabled={loading}
+            className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold py-6"
+          >
+            {loading ? 'Opening Checkout...' : 'Upgrade to Premium'}
+          </Button>
+
+          <div className="text-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">or</p>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Standard Plan</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+              $9.99<span className="text-base font-normal text-slate-500 dark:text-slate-400">/month</span>
+            </p>
+          </div>
+
+          <Button 
+            onClick={() => handleUpgrade('standard')}
+            disabled={loading}
+            variant="outline"
+            className="w-full rounded-xl font-semibold py-4"
+          >
+            {loading ? 'Opening Checkout...' : 'Upgrade to Standard'}
+          </Button>
+        </div>
+
         <p className="text-xs text-center text-slate-500 dark:text-slate-400 mt-4">
-          7-day free trial • No credit card required
+          Cancel anytime • Secure payment via Stripe
         </p>
       </div>
     </div>
