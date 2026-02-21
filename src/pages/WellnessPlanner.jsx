@@ -100,7 +100,7 @@ Return JSON: {days: [{day: 1, practice: "", duration: "", focus: ""}]}`
               Premium Feature
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              AI-powered Wellness Planner is available with Premium subscription ($29.99/month).
+              AI-powered Wellness Planner is available with Premium subscription.
             </p>
             <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
               Upgrade to Premium

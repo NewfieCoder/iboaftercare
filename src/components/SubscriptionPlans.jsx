@@ -39,7 +39,7 @@ const plans = [
   {
     id: "premium",
     name: "Premium",
-    price: "$19.99",
+    price: "$29.99",
     icon: Crown,
     color: "from-violet-500 to-purple-600",
     priceId: "price_1T34hbI3sJmiH8svbD40XbzN",
@@ -48,8 +48,10 @@ const plans = [
       "Unlimited AI coach messages",
       "Full study library access",
       "Personalized wellness plans",
-      "1-on-1 integration support",
-      "Beta feature access"
+      "Milestone challenges & badges",
+      "VR/AR mindfulness guides",
+      "12-step recovery connector",
+      "Priority AI responses"
     ]
   }
 ];

@@ -62,6 +62,9 @@ import Resources from './pages/Resources';
 import StudyLibrary from './pages/StudyLibrary';
 import TesterFeedback from './pages/TesterFeedback';
 import WellnessPlanner from './pages/WellnessPlanner';
+import RecoveryConnector from './pages/RecoveryConnector';
+import MilestoneChallenges from './pages/MilestoneChallenges';
+import MindfulnessStudio from './pages/MindfulnessStudio';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +84,9 @@ export const PAGES = {
     "StudyLibrary": StudyLibrary,
     "TesterFeedback": TesterFeedback,
     "WellnessPlanner": WellnessPlanner,
+    "RecoveryConnector": RecoveryConnector,
+    "MilestoneChallenges": MilestoneChallenges,
+    "MindfulnessStudio": MindfulnessStudio,
 }
 
 export const pagesConfig = {
