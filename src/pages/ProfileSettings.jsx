@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, Chevro
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import BetaFeedbackForm from "@/components/BetaFeedbackForm";
 import TierSimulator from "@/components/admin/TierSimulator";
+import SubscriptionPlans from "@/components/SubscriptionPlans";
 
 export default function ProfileSettings() {
   const [user, setUser] = useState(null);
@@ -17,7 +18,9 @@ export default function ProfileSettings() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showSubscriptions, setShowSubscriptions] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     async function load() {
@@ -29,9 +32,23 @@ export default function ProfileSettings() {
         setDarkMode(profiles[0].dark_mode || false);
       }
       setLoading(false);
+
+      // Check for Stripe success/cancel params
+      if (searchParams.get('success') === 'true') {
+        // Payment successful - show success message
+        setTimeout(() => {
+          alert('🎉 Payment successful! Your premium features are now active.');
+          window.history.replaceState({}, '', '/ProfileSettings');
+        }, 500);
+      } else if (searchParams.get('canceled') === 'true') {
+        setTimeout(() => {
+          alert('Payment was canceled. No charges were made.');
+          window.history.replaceState({}, '', '/ProfileSettings');
+        }, 500);
+      }
     }
     load();
-  }, []);
+  }, [searchParams]);
 
   async function toggleDarkMode(val) {
     setDarkMode(val);
@@ -147,8 +164,51 @@ export default function ProfileSettings() {
         </div>
       </div>
 
+      {/* Subscription Management */}
+      {!showSubscriptions ? (
+        <div className="glass border border-white/30 dark:border-white/10 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Subscription</h3>
+            {profile?.premium && (
+              <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 text-amber-700 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-800">
+                <Crown className="w-3 h-3" />
+                {profile.premium_tier === 'premium' ? 'Premium' : 'Standard'}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            {profile?.premium 
+              ? `You're currently on the ${profile.premium_tier} plan with full access to premium features.` 
+              : 'Upgrade to unlock AI coaching, advanced analytics, and premium features.'}
+          </p>
+          <Button
+            onClick={() => setShowSubscriptions(true)}
+            className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
+          >
+            {profile?.premium ? 'Manage Subscription' : 'View Plans'}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowSubscriptions(false)}
+            className="rounded-xl"
+          >
+            ← Back to Settings
+          </Button>
+          <SubscriptionPlans 
+            currentTier={profile?.premium ? profile.premium_tier : 'free'} 
+            onSuccess={() => {
+              setShowSubscriptions(false);
+              window.location.reload();
+            }}
+          />
+        </div>
+      )}
+
       {/* Recovery Info */}
-      {profile && (
+      {!showSubscriptions && profile && (
         <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-5">
           <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">Recovery Profile</h3>
           <div className="space-y-3">
@@ -188,21 +248,25 @@ export default function ProfileSettings() {
         </div>
       )}
 
-      {/* Privacy & Legal */}
-      <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-700/50">
-        <Link to={createPageUrl("Privacy")} className="w-full flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
-              <Shield className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            </div>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">Privacy Policy</p>
+      {!showSubscriptions && (
+        <>
+          {/* Privacy & Legal */}
+          <div className="glass border border-white/30 dark:border-white/10 rounded-2xl divide-y divide-white/10">
+            <Link to={createPageUrl("Privacy")} className="w-full flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 glass border border-white/20 dark:border-white/10 rounded-xl">
+                  <Shield className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">Privacy Policy</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-400" />
+            </Link>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400" />
-        </Link>
-      </div>
 
-      {/* Beta Feedback */}
-      <BetaFeedbackForm user={user} />
+          {/* Beta Feedback */}
+          <BetaFeedbackForm user={user} />
+        </>
+      )}
 
       {/* Admin Tier Simulator */}
       {user?.role === 'admin' && <TierSimulator />}
