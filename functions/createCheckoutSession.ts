@@ -27,6 +27,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid tier' }, { status: 400 });
     }
 
+    // Get origin from request or use default
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('?')[0].replace(/\/$/, '') || 'https://iboaftercare.base44.app';
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -37,8 +40,8 @@ Deno.serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get('origin')}/ProfileSettings?success=true`,
-      cancel_url: `${req.headers.get('origin')}/ProfileSettings?canceled=true`,
+      success_url: `${origin}/ProfileSettings?success=true`,
+      cancel_url: `${origin}/ProfileSettings?canceled=true`,
       customer_email: user.email,
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
