@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
@@ -28,6 +28,23 @@ const reasons = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const profiles = await base44.entities.UserProfile.list();
+        if (profiles.length > 0 && profiles[0]?.onboarding_complete) {
+          navigate(createPageUrl("Home"), { replace: true });
+          return;
+        }
+      } catch (e) {
+        console.error("Error checking onboarding status:", e);
+      }
+      setLoading(false);
+    }
+    checkOnboarding();
+  }, [navigate]);
   const [userType, setUserType] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [treatmentDate, setTreatmentDate] = useState("");
@@ -273,6 +290,17 @@ export default function Onboarding() {
     if (step === 3) return primaryReason;
     return true;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950">
+        <div className="text-center">
+          <Logo variant="icon" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+          <p className="text-sm text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
