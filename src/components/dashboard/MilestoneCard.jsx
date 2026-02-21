@@ -1,4 +1,5 @@
 import { Award, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function MilestoneCard({ treatmentDate, userType }) {
   if (!treatmentDate) return null;
@@ -39,28 +40,37 @@ export default function MilestoneCard({ treatmentDate, userType }) {
   }
 
   return (
-    <div className="glass rounded-3xl p-6 text-slate-800 dark:text-white border border-white/30 dark:border-white/10 shadow-xl">
-      <div className="flex items-center gap-2 mb-3 opacity-70">
-        <Calendar className="w-4 h-4" />
-        <span className="text-xs font-medium">Recovery Journey</span>
-      </div>
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-4xl font-bold text-teal-700 dark:text-teal-300">{days}</p>
-          <p className="text-sm opacity-70">
-            {isPreTreatment ? "days until treatment" : "days since treatment"}
-          </p>
+    <motion.div 
+      className="glass rounded-3xl p-6 text-slate-800 dark:text-white border border-white/30 dark:border-white/10 shadow-xl hover:shadow-2xl texture-overlay overflow-hidden group"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      whileHover={{ scale: 1.02 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-3 opacity-70">
+          <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span className="text-xs font-medium">Recovery Journey</span>
         </div>
-        <div className="text-right">
-          <div className="flex items-center gap-1.5 bg-teal-100/50 dark:bg-teal-900/30 rounded-full px-3 py-1.5">
-            <Award className="w-4 h-4 text-teal-700 dark:text-teal-300" />
-            <span className="text-sm font-medium text-teal-700 dark:text-teal-300">{milestone}</span>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-4xl font-bold text-emerald-700 dark:text-emerald-300">{days}</p>
+            <p className="text-sm opacity-70">
+              {isPreTreatment ? "days until treatment" : "days since treatment"}
+            </p>
           </div>
-          {nextMilestone && (
-            <p className="text-xs opacity-60 mt-2">{daysToNext}d to {nextMilestone}</p>
-          )}
+          <div className="text-right">
+            <div className="flex items-center gap-1.5 bg-emerald-100/50 dark:bg-emerald-900/30 rounded-full px-3 py-1.5 shadow-sm">
+              <Award className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+              <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{milestone}</span>
+            </div>
+            {nextMilestone && (
+              <p className="text-xs opacity-60 mt-2">{daysToNext}d to {nextMilestone}</p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

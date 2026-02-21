@@ -121,10 +121,30 @@ export default function Layout({ children, currentPageName }) {
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
         }
         .dark .glass {
           background: rgba(15, 23, 42, 0.6);
           border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Subtle texture overlay */
+        .texture-overlay {
+          position: relative;
+        }
+        .texture-overlay::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23000' stroke-width='0.5' opacity='0.03'/%3E%3C/svg%3E");
+          pointer-events: none;
+          opacity: 0.4;
+        }
+
+        /* Smooth transitions */
+        * {
+          transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
         }
 
         /* Elegant serif for headings */
@@ -163,13 +183,16 @@ export default function Layout({ children, currentPageName }) {
                     <Link
                       key={item.page}
                       to={createPageUrl(item.page)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          ? "bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/30 dark:to-emerald-900/30 text-teal-700 dark:text-teal-300 shadow-sm"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:shadow-md"
                       }`}
+                      style={{
+                        boxShadow: isActive ? '0 0 20px rgba(20, 184, 166, 0.15)' : undefined
+                      }}
                     >
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className={`w-4 h-4 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`} />
                       {item.name}
                     </Link>
                   );
@@ -198,13 +221,16 @@ export default function Layout({ children, currentPageName }) {
                   <Link
                     key={item.page}
                     to={createPageUrl(item.page)}
-                    className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
+                    className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "text-teal-600 dark:text-teal-400"
-                        : "text-slate-400 dark:text-slate-500"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-slate-400 dark:text-slate-500 active:scale-95"
                     }`}
+                    style={{
+                      filter: isActive ? 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.3))' : undefined
+                    }}
                   >
-                    <item.icon className={`w-5 h-5 ${isActive ? "scale-110" : ""} transition-transform`} />
+                    <item.icon className={`w-5 h-5 ${isActive ? "scale-110" : ""} transition-transform duration-200`} />
                     <span className="text-[10px] font-medium">{item.name}</span>
                   </Link>
                 );

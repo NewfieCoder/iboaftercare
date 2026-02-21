@@ -149,9 +149,12 @@ function DailyTip({ profile }) {
   }
 
   return (
-    <div className="glass rounded-2xl p-5 border border-white/30 dark:border-white/10 shadow-lg">
-      <p className="text-xs font-medium text-teal-700 dark:text-teal-400 mb-2">💡 Daily Insight</p>
-      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{tip?.tip}</p>
+    <div className="glass rounded-2xl p-5 border border-white/30 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300 texture-overlay group">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+      <div className="relative">
+        <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-2">💡 Daily Insight</p>
+        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{tip?.tip}</p>
+      </div>
     </div>
   );
 }
