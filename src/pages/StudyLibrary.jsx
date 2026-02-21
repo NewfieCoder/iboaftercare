@@ -207,7 +207,12 @@ export default function StudyLibrary() {
                   {study.citation}
                 </p>
                 {study.url && (
-                  <Button variant="ghost" size="sm" className="gap-2 text-teal-600">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-2 text-teal-600"
+                    onClick={() => window.open(study.url, '_blank')}
+                  >
                     <ExternalLink className="w-3 h-3" />
                     View Source
                   </Button>
@@ -233,7 +238,22 @@ export default function StudyLibrary() {
                 </p>
               </div>
             </div>
-            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+            <Button 
+              onClick={async () => {
+                if (window.self !== window.top) {
+                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
+                  return;
+                }
+                try {
+                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'premium' });
+                  if (response.data.url) window.location.href = response.data.url;
+                } catch (error) {
+                  console.error('Checkout error:', error);
+                  setShowUpsell(true);
+                }
+              }}
+              className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600"
+            >
               Upgrade
             </Button>
           </div>
