@@ -30,12 +30,20 @@ export default function HabitWidget() {
     }
 
     const longestStreak = Math.max(habit.longest_streak || 0, newStreak);
-    await base44.entities.HabitTracker.update(habit.id, {
+    
+    // Optimistic update
+    setHabits(prev => prev.map(h => 
+      h.id === habit.id 
+        ? { ...h, completions: newCompletions, current_streak: newStreak, longest_streak: longestStreak }
+        : h
+    ));
+    
+    // Background update
+    base44.entities.HabitTracker.update(habit.id, {
       completions: newCompletions,
       current_streak: newStreak,
       longest_streak: longestStreak,
-    });
-    loadHabits();
+    }).catch(() => loadHabits()); // Revert on error
   }
 
   const completedToday = habits.filter(h => (h.completions || []).includes(today)).length;

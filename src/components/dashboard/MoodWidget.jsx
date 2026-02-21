@@ -27,13 +27,26 @@ export default function MoodWidget() {
   async function logMood() {
     setLogging(true);
     const today = new Date().toISOString().split("T")[0];
-    await base44.entities.MoodLog.create({
-      mood_score: selectedMood,
-      log_date: today,
-    });
-    await loadMoods();
+    
+    // Optimistic update
+    const newLog = { mood_score: selectedMood, log_date: today, id: 'temp' };
+    setTodayMood(newLog);
+    setRecentMoods(prev => [newLog, ...prev.slice(0, 6)]);
     setShowPicker(false);
     setLogging(false);
+    
+    // Background update
+    try {
+      await base44.entities.MoodLog.create({
+        mood_score: selectedMood,
+        log_date: today,
+      });
+      await loadMoods(); // Refresh with real data
+    } catch (error) {
+      // Revert on error
+      setTodayMood(null);
+      await loadMoods();
+    }
   }
 
   const avgMood = recentMoods.length > 0

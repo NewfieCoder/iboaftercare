@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { Home, MessageCircle, TrendingUp, BookOpen, Settings, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -8,6 +8,8 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
 import Logo from "@/components/Logo";
+import MobileHeader from "@/components/MobileHeader";
+import { AnimatePresence, motion } from "framer-motion";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -22,6 +24,7 @@ export default function Layout({ children, currentPageName }) {
   const [darkMode, setDarkMode] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const hideNav = currentPageName === "Onboarding";
+  const location = useLocation();
 
   useEffect(() => {
     async function loadTheme() {
@@ -85,6 +88,7 @@ export default function Layout({ children, currentPageName }) {
 
       <OfflineIndicator />
       <SimulationBanner />
+      <MobileHeader currentPageName={currentPageName} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500;600;700&display=swap');
 
@@ -154,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {!hideNav && (
-        <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10">
+        <header className="hidden md:block fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10 no-select">
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
               <Logo variant="icon" className="w-8 h-8" />
@@ -204,8 +208,18 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-14 pb-32 md:pb-6" : ""}`}>
-        {children}
+      <main className={`${!hideNav ? "pt-14 md:pt-14 pb-32 md:pb-6" : ""}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {!hideNav && (
@@ -213,7 +227,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 safe-area-bottom">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 safe-area-bottom no-select">
             <div className="flex items-center justify-around px-2 py-2">
               {navItems.map((item) => {
                 const isActive = currentPageName === item.page;
