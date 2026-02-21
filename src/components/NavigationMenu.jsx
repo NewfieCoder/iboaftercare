@@ -171,6 +171,23 @@ export default function NavigationMenu({ currentPageName }) {
         </div>
       )}
 
+      {/* Upgrade Prompt */}
+      {!profile?.premium && (
+        <div className="px-4 mb-4">
+          <Link
+            to={createPageUrl("ProfileSettings")}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border border-amber-200 dark:border-amber-800 hover:shadow-md transition-all"
+          >
+            <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">Upgrade to Premium</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400">Unlock AI coach & more</p>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Settings & Logout */}
       <div className="space-y-1 px-2 border-t border-slate-200 dark:border-slate-700 pt-4">
         {menuSections.settings.map((item) => (
