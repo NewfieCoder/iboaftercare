@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { Home, MessageCircle, TrendingUp, BookOpen, Settings, TreePine, Users } from "lucide-react";
+import { Home, MessageCircle, TrendingUp, BookOpen, Settings, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import CrisisFooter from "@/components/CrisisFooter";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
+import Logo from "@/components/Logo";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -88,12 +89,10 @@ export default function Layout({ children, currentPageName }) {
         <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                <TreePine className="w-5 h-5 text-white" />
-              </div>
+              <Logo variant="icon" className="w-8 h-8" />
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-900 dark:text-white tracking-tight">
-                  IboGuide
+                  IboAftercare Coach
                 </span>
                 {userRole && userRole !== 'user' && (
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${

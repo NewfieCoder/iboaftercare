@@ -5,8 +5,9 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TreePine, ChevronRight, ChevronLeft, Heart, Shield, Sparkles } from "lucide-react";
+import { ChevronRight, ChevronLeft, Heart, Shield, Sparkles } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import Logo from "@/components/Logo";
 
 const challenges = [
   "Anxiety", "Cravings", "Sleep Issues", "Depression", "Mood Swings",
@@ -62,11 +63,11 @@ export default function Onboarding() {
   const steps = [
     // Welcome
     <div key="welcome" className="flex flex-col items-center text-center px-4">
-      <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-teal-200/50">
-        <TreePine className="w-14 h-14 text-white" />
+      <div className="mb-8">
+        <Logo variant="icon" className="w-24 h-24" />
       </div>
       <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
-        Welcome to IboGuide
+        Welcome to IboAftercare Coach
       </h1>
       <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm leading-relaxed">
         Your AI companion for Ibogaine preparation and integration support.

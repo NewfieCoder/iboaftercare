@@ -9,6 +9,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import MilestoneCard from "@/components/dashboard/MilestoneCard";
 import WelcomeTutorial from "@/components/WelcomeTutorial";
 import IntegrationCalendar from "@/components/dashboard/IntegrationCalendar";
+import SplashScreen from "@/components/SplashScreen";
 import { Loader2 } from "lucide-react";
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showSplash, setShowSplash] = useState(!localStorage.getItem("hasSeenSplash"));
 
   useEffect(() => {
     async function init() {
@@ -50,6 +52,11 @@ export default function Home() {
     setShowTutorial(false);
   };
 
+  const completeSplash = () => {
+    localStorage.setItem("hasSeenSplash", "true");
+    setShowSplash(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -68,8 +75,10 @@ export default function Home() {
   const firstName = user?.full_name?.split(" ")[0] || "there";
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
-      {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
+    <>
+      {showSplash && <SplashScreen onComplete={completeSplash} />}
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+        {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
 
       {/* Greeting */}
       <div>
