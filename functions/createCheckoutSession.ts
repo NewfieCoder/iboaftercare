@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
 
     // Map tiers to price IDs
     const priceIds = {
-      standard: 'price_1T34haI3sJmiH8svL93agDRB',
-      premium: 'price_1T34hbI3sJmiH8svbD40XbzN'
+      standard: 'price_1T35QJIca4bvjpuWlT5QG642', // $9.99/month
+      premium: 'price_1T35QLIca4bvjpuWqNKqfMcK'   // $19.99/month
     };
 
     const priceId = priceIds[tier];
