@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 export default function PremiumUpsell({ onClose, feature = "this feature" }) {
   const [discount, setDiscount] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [billingCycle, setBillingCycle] = useState('monthly');
 
   const handleUpgrade = async (tier) => {
     if (window.self !== window.top) {
@@ -16,7 +17,10 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
 
     setLoading(true);
     try {
-      const response = await base44.functions.invoke('createCheckoutSession', { tier });
+      const response = await base44.functions.invoke('createCheckoutSession', { 
+        tier, 
+        billing: billingCycle 
+      });
       
       if (response.data.url) {
         window.location.href = response.data.url;
@@ -66,15 +70,43 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
           <DiscountCodeInput onSuccess={(code) => setDiscount(code)} />
         </div>
 
+        {/* Billing Cycle Toggle */}
+        <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4">
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              billingCycle === 'monthly'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              billingCycle === 'annual'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Annual <span className="text-emerald-600 dark:text-emerald-400 text-xs ml-1">Save 8%</span>
+          </button>
+        </div>
+
         <div className="space-y-3">
           <div className="text-center">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Premium Plan</p>
             {discount ? (
               <>
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <p className="text-xl font-bold text-slate-400 dark:text-slate-500 line-through">$29.99</p>
+                  <p className="text-xl font-bold text-slate-400 dark:text-slate-500 line-through">
+                    ${billingCycle === 'monthly' ? '19.99' : '219.89'}
+                  </p>
                   <p className="text-3xl font-bold text-teal-600 dark:text-teal-400">
-                    ${(29.99 * (1 - discount.discount_percent / 100)).toFixed(2)}
+                    ${billingCycle === 'monthly' 
+                      ? (19.99 * (1 - discount.discount_percent / 100)).toFixed(2)
+                      : (219.89 * (1 - discount.discount_percent / 100)).toFixed(2)}
                   </p>
                 </div>
                 <p className="text-sm text-teal-700 dark:text-teal-400 font-medium">
@@ -82,9 +114,19 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
                 </p>
               </>
             ) : (
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                $29.99<span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span>
-              </p>
+              <>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">
+                  ${billingCycle === 'monthly' ? '19.99' : '219.89'}
+                  <span className="text-lg font-normal text-slate-500 dark:text-slate-400">
+                    /{billingCycle === 'monthly' ? 'month' : 'year'}
+                  </span>
+                </p>
+                {billingCycle === 'annual' && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                    $18.32/month • Save $21.99/year
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -99,9 +141,17 @@ export default function PremiumUpsell({ onClose, feature = "this feature" }) {
           <div className="text-center">
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">or</p>
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Standard Plan</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-              $9.99<span className="text-base font-normal text-slate-500 dark:text-slate-400">/month</span>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+              ${billingCycle === 'monthly' ? '9.99' : '109.89'}
+              <span className="text-base font-normal text-slate-500 dark:text-slate-400">
+                /{billingCycle === 'monthly' ? 'month' : 'year'}
+              </span>
             </p>
+            {billingCycle === 'annual' && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+                $9.16/month • Save $9.99/year
+              </p>
+            )}
           </div>
 
           <Button 

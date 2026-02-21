@@ -14,17 +14,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tier } = await req.json();
+    const { tier, billing = 'monthly' } = await req.json();
 
     // Map tiers to price IDs
     const priceIds = {
-      standard: 'price_1T35QJIca4bvjpuWlT5QG642', // $9.99/month
-      premium: 'price_1T35QLIca4bvjpuWqNKqfMcK'   // $19.99/month
+      'standard-monthly': 'price_1T35QJIca4bvjpuWlT5QG642',  // $9.99/month
+      'standard-annual': 'price_1T36kfIca4bvjpuWRlXZBE6f',   // $109.89/year
+      'premium-monthly': 'price_1T35QLIca4bvjpuWqNKqfMcK',   // $19.99/month
+      'premium-annual': 'price_1T36kfIca4bvjpuWJIwv695y'     // $219.89/year
     };
 
-    const priceId = priceIds[tier];
+    const priceKey = `${tier}-${billing}`;
+    const priceId = priceIds[priceKey];
     if (!priceId) {
-      return Response.json({ error: 'Invalid tier' }, { status: 400 });
+      return Response.json({ error: 'Invalid tier or billing cycle' }, { status: 400 });
     }
 
     // Get origin from request or use default

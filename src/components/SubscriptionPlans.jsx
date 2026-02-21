@@ -8,7 +8,8 @@ const plans = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
+    monthlyPrice: "$0",
+    annualPrice: "$0",
     icon: Sparkles,
     color: "from-slate-400 to-slate-600",
     features: [
@@ -22,10 +23,13 @@ const plans = [
   {
     id: "standard",
     name: "Standard",
-    price: "$9.99",
+    monthlyPrice: "$9.99",
+    annualPrice: "$109.89",
+    annualSavings: "$9.99",
     icon: Zap,
     color: "from-blue-500 to-indigo-600",
-    priceId: "price_1T34haI3sJmiH8svL93agDRB",
+    monthlyPriceId: "price_1T35QJIca4bvjpuWlT5QG642",
+    annualPriceId: "price_1T36kfIca4bvjpuWRlXZBE6f",
     popular: true,
     features: [
       "Everything in Free",
@@ -39,10 +43,13 @@ const plans = [
   {
     id: "premium",
     name: "Premium",
-    price: "$29.99",
+    monthlyPrice: "$19.99",
+    annualPrice: "$219.89",
+    annualSavings: "$21.99",
     icon: Crown,
     color: "from-violet-500 to-purple-600",
-    priceId: "price_1T34hbI3sJmiH8svbD40XbzN",
+    monthlyPriceId: "price_1T35QLIca4bvjpuWqNKqfMcK",
+    annualPriceId: "price_1T36kfIca4bvjpuWJIwv695y",
     features: [
       "Everything in Standard",
       "Unlimited AI coach messages",
@@ -58,6 +65,7 @@ const plans = [
 
 export default function SubscriptionPlans({ currentTier, onSuccess }) {
   const [loading, setLoading] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly');
 
   async function handleSubscribe(tier) {
     // Check if running in iframe
@@ -68,7 +76,10 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
 
     setLoading(tier);
     try {
-      const response = await base44.functions.invoke('createCheckoutSession', { tier });
+      const response = await base44.functions.invoke('createCheckoutSession', { 
+        tier, 
+        billing: billingCycle 
+      });
       
       if (response.data.url) {
         window.location.href = response.data.url;
@@ -81,7 +92,34 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto">
+      {/* Billing Toggle */}
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+              billingCycle === 'monthly'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+              billingCycle === 'annual'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Annual <span className="text-emerald-600 dark:text-emerald-400 text-xs ml-1">Save 8%</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6">
       {plans.map((plan, idx) => {
         const Icon = plan.icon;
         const isCurrent = currentTier === plan.id;
@@ -115,12 +153,21 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
               {plan.name}
             </h3>
-            <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                {plan.price}
-              </span>
-              {plan.price !== "$0" && (
-                <span className="text-slate-500 dark:text-slate-400 text-sm">/month</span>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
+                </span>
+                {plan.monthlyPrice !== "$0" && (
+                  <span className="text-slate-500 dark:text-slate-400 text-sm">
+                    /{billingCycle === 'monthly' ? 'month' : 'year'}
+                  </span>
+                )}
+              </div>
+              {billingCycle === 'annual' && plan.annualSavings && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  Save {plan.annualSavings}/year
+                </p>
               )}
             </div>
 
@@ -157,6 +204,7 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
           </motion.div>
         );
       })}
+      </div>
     </div>
   );
 }
