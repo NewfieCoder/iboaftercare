@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Check, Plus, Flame } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function HabitWidget() {
   const [habits, setHabits] = useState([]);
@@ -40,10 +41,15 @@ export default function HabitWidget() {
   const completedToday = habits.filter(h => (h.completions || []).includes(today)).length;
 
   return (
-    <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50">
+    <motion.div 
+      className="glass border border-white/30 dark:border-white/10 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 texture-overlay"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-slate-900 dark:text-white">Today's Habits</h3>
-        <span className="text-xs font-medium text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2.5 py-1 rounded-full">
+        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
           {completedToday}/{habits.length}
         </span>
       </div>
@@ -57,23 +63,26 @@ export default function HabitWidget() {
               <button
                 key={habit.id}
                 onClick={() => toggleCompletion(habit)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
                   done
-                    ? "bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800"
-                    : "bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700 hover:border-teal-200"
+                    ? "glass border-emerald-300/50 dark:border-emerald-700/50"
+                    : "glass border-white/30 dark:border-white/10 hover:border-emerald-200 dark:hover:border-emerald-800"
                 }`}
+                style={{
+                  boxShadow: done ? '0 0 15px rgba(16, 185, 129, 0.15)' : undefined
+                }}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                  done ? "bg-teal-500 text-white" : "border-2 border-slate-300 dark:border-slate-600"
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  done ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30" : "border-2 border-slate-300 dark:border-slate-600 group-hover:border-emerald-400"
                 }`}>
                   {done && <Check className="w-3.5 h-3.5" />}
                 </div>
                 <span className={`text-sm font-medium flex-1 text-left ${
-                  done ? "text-teal-700 dark:text-teal-300 line-through" : "text-slate-700 dark:text-slate-300"
+                  done ? "text-emerald-700 dark:text-emerald-300 line-through" : "text-slate-700 dark:text-slate-300"
                 }`}>{habit.habit_name}</span>
                 {(habit.current_streak || 0) > 0 && (
                   <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                    <Flame className="w-3.5 h-3.5" />{habit.current_streak}
+                    <Flame className="w-3.5 h-3.5" style={{ filter: 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.4))' }} />{habit.current_streak}
                   </span>
                 )}
               </button>
@@ -81,6 +90,6 @@ export default function HabitWidget() {
           })}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
