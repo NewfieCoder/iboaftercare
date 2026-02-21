@@ -88,7 +88,7 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-lg mx-auto px-4 py-4 space-y-5">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Settings</h1>
 
       {/* Profile Card */}
