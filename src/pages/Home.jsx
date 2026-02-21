@@ -108,9 +108,10 @@ export default function Home() {
       {/* Daily Tip */}
       <DailyTip profile={profile} />
 
-      {/* Disclaimer */}
-      <DisclaimerBanner compact />
-    </div>
+        {/* Disclaimer */}
+        <DisclaimerBanner compact />
+      </div>
+    </>
   );
 }
 
