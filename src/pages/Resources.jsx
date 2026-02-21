@@ -2,6 +2,7 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Search, BookOpen, Brain, Heart, Dumbbell, Users, Apple, ExternalLink, Sparkles, Loader2 } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const categories = [
   { id: "all", label: "All", icon: BookOpen },
@@ -117,8 +118,16 @@ export default function Resources() {
     setAiLoading(false);
   }
 
+  async function refreshData() {
+    // Refresh AI answer if there's a search query
+    if (searchQuery.trim()) {
+      await aiSearch();
+    }
+  }
+
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
+      <PullToRefresh onRefresh={refreshData} />
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight mb-5">
         Resources
       </h1>

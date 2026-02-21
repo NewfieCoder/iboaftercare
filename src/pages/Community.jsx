@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, MessageCircle, Flag, Plus, Loader2, Users, Shield } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const categories = [
   "Integration Stories",
@@ -47,6 +48,7 @@ export default function Community() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <PullToRefresh onRefresh={loadData} />
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
