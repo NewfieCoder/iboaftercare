@@ -7,7 +7,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { 
   Menu, Home, MessageCircle, TrendingUp, BookOpen, Users, Settings, 
-  Crown, ClipboardList, Sparkles, Shield, Flag, Edit, TestTube, LogOut
+  Crown, ClipboardList, Sparkles, Shield, Flag, Edit, TestTube, LogOut,
+  Brain, Trophy
 } from "lucide-react";
 
 const menuSections = {
@@ -21,6 +22,9 @@ const menuSections = {
   wellness: [
     { name: "Prep Toolkit", icon: ClipboardList, page: "PrepToolkit", premium: true },
     { name: "Wellness Planner", icon: Sparkles, page: "WellnessPlanner", premium: true },
+    { name: "Mindfulness Studio", icon: Brain, page: "MindfulnessStudio", premium: true },
+    { name: "Milestone Challenges", icon: Trophy, page: "MilestoneChallenges", premium: true },
+    { name: "Recovery Connector", icon: Users, page: "RecoveryConnector" },
     { name: "Study Library", icon: BookOpen, page: "StudyLibrary" }
   ],
   roleSpecific: [
