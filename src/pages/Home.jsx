@@ -32,7 +32,7 @@ export default function Home() {
         profiles[0].premium = true;
       }
       
-      if (profiles.length === 0) {
+      if (profiles.length === 0 || !profiles[0]?.onboarding_complete) {
         navigate(createPageUrl("Onboarding"));
         return;
       }
