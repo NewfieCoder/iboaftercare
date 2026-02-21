@@ -122,7 +122,22 @@ export default function MilestoneChallenges() {
             <p className="text-slate-600 dark:text-slate-400 mb-6">
               Milestone Challenges & Badges are available with Premium subscription.
             </p>
-            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+            <Button 
+              onClick={async () => {
+                if (window.self !== window.top) {
+                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
+                  return;
+                }
+                try {
+                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'premium' });
+                  if (response.data.url) window.location.href = response.data.url;
+                } catch (error) {
+                  console.error('Checkout error:', error);
+                  setShowUpsell(true);
+                }
+              }}
+              className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600"
+            >
               Upgrade to Premium
             </Button>
           </Card>
