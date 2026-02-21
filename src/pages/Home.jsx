@@ -77,7 +77,7 @@ export default function Home() {
   return (
     <>
       {showSplash && <SplashScreen onComplete={completeSplash} />}
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="max-w-lg mx-auto px-4 py-4 space-y-5">
         {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
 
         {/* Greeting */}

@@ -207,7 +207,7 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)]">
+    <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-9rem)]">
       {showCrisis && <CrisisRedirect onClose={() => setShowCrisis(false)} />}
       {showPremium && <PremiumUpsell onClose={() => setShowPremium(false)} feature="unlimited AI coach sessions" />}
       {showGuidedSession && <GuidedSession sessionType={showGuidedSession} onClose={() => setShowGuidedSession(null)} />}
