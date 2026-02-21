@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronRight, ChevronLeft, Heart, Shield, Sparkles } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import Logo from "@/components/Logo";
+import { motion } from "framer-motion";
 
 const challenges = [
   "Anxiety", "Cravings", "Sleep Issues", "Depression", "Mood Swings",
@@ -96,11 +97,14 @@ export default function Onboarding() {
       <div className="space-y-3">
         <button
           onClick={() => setUserType("pre-treatment")}
-          className={`w-full p-6 rounded-2xl text-left transition-all border ${
+          className={`w-full p-6 rounded-2xl text-left transition-all duration-300 border glass ${
             userType === "pre-treatment"
-              ? "bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700"
-              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-teal-200"
+              ? "border-emerald-300 dark:border-emerald-700"
+              : "border-white/30 dark:border-white/10 hover:border-emerald-200 hover:shadow-lg"
           }`}
+          style={{
+            boxShadow: userType === "pre-treatment" ? '0 0 20px rgba(16, 185, 129, 0.2)' : undefined
+          }}
         >
           <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Pre-Treatment Preparation</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -109,11 +113,14 @@ export default function Onboarding() {
         </button>
         <button
           onClick={() => setUserType("post-treatment")}
-          className={`w-full p-6 rounded-2xl text-left transition-all border ${
+          className={`w-full p-6 rounded-2xl text-left transition-all duration-300 border glass ${
             userType === "post-treatment"
-              ? "bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700"
-              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-teal-200"
+              ? "border-emerald-300 dark:border-emerald-700"
+              : "border-white/30 dark:border-white/10 hover:border-emerald-200 hover:shadow-lg"
           }`}
+          style={{
+            boxShadow: userType === "post-treatment" ? '0 0 20px rgba(16, 185, 129, 0.2)' : undefined
+          }}
         >
           <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Post-Treatment Integration</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -162,11 +169,14 @@ export default function Onboarding() {
           <button
             key={reason}
             onClick={() => setPrimaryReason(reason)}
-            className={`p-4 rounded-2xl text-sm font-medium text-left transition-all border ${
+            className={`p-4 rounded-2xl text-sm font-medium text-left transition-all duration-200 border glass ${
               primaryReason === reason
-                ? "bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300"
-                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-teal-200"
+                ? "border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-emerald-200 hover:shadow-md"
             }`}
+            style={{
+              boxShadow: primaryReason === reason ? '0 0 15px rgba(16, 185, 129, 0.2)' : undefined
+            }}
           >
             {reason}
           </button>
@@ -192,11 +202,14 @@ export default function Onboarding() {
           <button
             key={ch}
             onClick={() => toggleItem(ch, selectedChallenges, setSelectedChallenges)}
-            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border glass hover:scale-105 active:scale-95 ${
               selectedChallenges.includes(ch)
-                ? "bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300"
-                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                ? "border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-emerald-200"
             }`}
+            style={{
+              boxShadow: selectedChallenges.includes(ch) ? '0 0 12px rgba(16, 185, 129, 0.25)' : undefined
+            }}
           >
             {ch}
           </button>
@@ -220,11 +233,14 @@ export default function Onboarding() {
           <button
             key={g}
             onClick={() => toggleItem(g, selectedGoals, setSelectedGoals)}
-            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border glass hover:scale-105 active:scale-95 ${
               selectedGoals.includes(g)
-                ? "bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300"
-                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                ? "border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-emerald-200"
             }`}
+            style={{
+              boxShadow: selectedGoals.includes(g) ? '0 0 12px rgba(16, 185, 129, 0.25)' : undefined
+            }}
           >
             {g}
           </button>
@@ -259,21 +275,45 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Background matching main app */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />
+        <svg className="absolute inset-0 w-full h-full opacity-30 dark:opacity-20" preserveAspectRatio="none">
+          <path d="M-50,100 Q200,150 400,80 T900,120" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.4"/>
+        </svg>
+      </div>
+      
       {/* Progress */}
       <div className="px-6 pt-8 pb-4">
         <div className="flex gap-1.5 max-w-md mx-auto">
           {steps.map((_, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-              i <= step ? "bg-teal-500" : "bg-slate-200 dark:bg-slate-800"
-            }`} />
+            <motion.div 
+              key={i} 
+              className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                i <= step ? "bg-gradient-to-r from-emerald-500 to-teal-500" : "bg-white/40 dark:bg-slate-800/40"
+              }`}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: i <= step ? 1 : 0.3 }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              style={{ boxShadow: i <= step ? '0 0 10px rgba(16, 185, 129, 0.3)' : undefined }}
+            />
           ))}
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col max-w-lg mx-auto w-full py-6">
-        <div className="flex-1">{steps[step]}</div>
+        <motion.div 
+          key={step}
+          className="flex-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          {steps[step]}
+        </motion.div>
 
         {/* Navigation */}
         <div className="px-4 pt-8 pb-6 flex gap-3">
