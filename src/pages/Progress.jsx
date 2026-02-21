@@ -19,7 +19,7 @@ export default function Progress() {
   const [activeTab, setActiveTab] = useState(params.get("tab") || "overview");
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-lg mx-auto px-4 py-4">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight mb-5">
         Progress
       </h1>
