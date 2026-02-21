@@ -3,6 +3,7 @@ import { createPageUrl } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Crown, Sparkles, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { base44 } from "@/api/base44Client";
 
 export default function PremiumPrompt({ feature, requiredTier = "standard" }) {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function PremiumPrompt({ feature, requiredTier = "standard" }) {
     },
     premium: {
       name: "Premium",
-      price: "$19.99/mo",
+      price: "$29.99/mo",
       icon: Crown,
       color: "from-violet-500 to-purple-600",
     }
@@ -52,11 +53,23 @@ export default function PremiumPrompt({ feature, requiredTier = "standard" }) {
       </div>
 
       <Button
-        onClick={() => navigate(createPageUrl("ProfileSettings"))}
+        onClick={async () => {
+          if (window.self !== window.top) {
+            alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
+            return;
+          }
+          try {
+            const response = await base44.functions.invoke('createCheckoutSession', { tier: requiredTier });
+            if (response.data.url) window.location.href = response.data.url;
+          } catch (error) {
+            console.error('Checkout error:', error);
+            navigate(createPageUrl("ProfileSettings"));
+          }
+        }}
         className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg hover:shadow-xl mb-3"
       >
         <Sparkles className="w-4 h-4 mr-2" />
-        View Subscription Plans
+        Upgrade to {tier.name}
       </Button>
 
       <button

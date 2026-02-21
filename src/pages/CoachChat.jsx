@@ -229,8 +229,21 @@ export default function CoachChat() {
         <div className="flex items-center gap-2">
           {!isPremium && (
             <button
-              onClick={() => setShowPremium(true)}
+              onClick={async () => {
+                if (window.self !== window.top) {
+                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
+                  return;
+                }
+                try {
+                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'standard' });
+                  if (response.data.url) window.location.href = response.data.url;
+                } catch (error) {
+                  console.error('Checkout error:', error);
+                  setShowPremium(true);
+                }
+              }}
               className="p-2 rounded-xl text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              title="Upgrade to unlock unlimited sessions"
             >
               <Crown className="w-5 h-5" />
             </button>
