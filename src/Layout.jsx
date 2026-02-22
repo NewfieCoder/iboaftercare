@@ -192,8 +192,6 @@ export default function Layout({ children, currentPageName }) {
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     userRole === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
                     userRole === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
-                    userRole === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                    userRole === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
                     ''
                   }`}>
                     {userRole}

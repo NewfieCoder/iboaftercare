@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const { userId, newRole, reason } = await req.json();
 
     // Validate role
-    const validRoles = ['user', 'tester', 'editor', 'moderator', 'admin'];
+    const validRoles = ['user', 'tester', 'admin'];
     if (!validRoles.includes(newRole)) {
       return Response.json({ error: 'Invalid role' }, { status: 400 });
     }

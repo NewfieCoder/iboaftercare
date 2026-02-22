@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Ban, Crown, MoreVertical, Loader2, Mail, CheckCircle, Shield, Code, Eye } from "lucide-react";
+import { Search, Crown, MoreVertical, Loader2, Mail, Code } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -125,8 +125,6 @@ export default function UserManagement({ adminEmail }) {
     switch(role) {
       case 'admin': return 'Full access to all features, user management, and settings';
       case 'tester': return 'FREE Premium tier access for beta testing (no payment required)';
-      case 'editor': return 'Can edit resources, articles, and AI templates';
-      case 'moderator': return 'Can moderate forum posts and manage community';
       case 'user': return 'Standard user access based on subscription tier';
       default: return '';
     }
@@ -191,8 +189,6 @@ export default function UserManagement({ adminEmail }) {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="user">User</SelectItem>
             <SelectItem value="tester">Tester</SelectItem>
-            <SelectItem value="editor">Editor</SelectItem>
-            <SelectItem value="moderator">Moderator</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
@@ -203,7 +199,7 @@ export default function UserManagement({ adminEmail }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-slate-900 dark:text-white">{users.length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">Total</p>
@@ -215,14 +211,6 @@ export default function UserManagement({ adminEmail }) {
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'tester').length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">Testers</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
-          <p className="text-2xl font-bold text-orange-600">{users.filter(u => u.role === 'moderator').length}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Moderators</p>
-        </div>
-        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
-          <p className="text-2xl font-bold text-blue-600">{users.filter(u => u.role === 'editor').length}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Editors</p>
         </div>
       </div>
 
@@ -294,10 +282,6 @@ export default function UserManagement({ adminEmail }) {
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium capitalize ${
                         user.role === 'admin'
                           ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400"
-                          : user.role === 'moderator'
-                          ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
-                          : user.role === 'editor'
-                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                           : user.role === 'tester'
                           ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
@@ -326,18 +310,6 @@ export default function UserManagement({ adminEmail }) {
                             <DropdownMenuItem onClick={() => openRoleDialog(user, 'tester')}>
                               <Code className="w-4 h-4 mr-2" />
                               Set as Tester (Free Premium)
-                            </DropdownMenuItem>
-                          )}
-                          {user.role !== 'editor' && (
-                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'editor')}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Set as Editor
-                            </DropdownMenuItem>
-                          )}
-                          {user.role !== 'moderator' && (
-                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'moderator')}>
-                              <Shield className="w-4 h-4 mr-2" />
-                              Set as Moderator
                             </DropdownMenuItem>
                           )}
                           {(user.role && user.role !== 'user') && (
