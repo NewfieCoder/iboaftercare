@@ -22,14 +22,16 @@ Deno.serve(async (req) => {
       'standard-annual': 'price_1T36kfIca4bvjpuWRlXZBE6f',   // $109.89/year
       'premium-monthly': 'price_1T35QLIca4bvjpuWqNKqfMcK',   // $19.99/month
       'premium-annual': 'price_1T36kfIca4bvjpuWJIwv695y',    // $219.89/year
-      'access-pass': 'price_1T3eNMIca4bvjpuWcMz428ZX'        // $5 one-time 7-day pass
+      'standard-pass': 'price_1T3eNMIca4bvjpuWcMz428ZX',     // $5 one-time 7-day Standard pass
+      'premium-pass': 'price_1T3hdgIca4bvjpuWIx6PuzBY'       // $10 one-time 7-day Premium pass
     };
 
     let priceId;
     let mode = 'subscription';
+    let finalTier = tier;
 
     if (accessPass) {
-      priceId = priceIds['access-pass'];
+      priceId = priceIds[`${tier}-pass`];
       mode = 'payment';
     } else {
       const priceKey = `${tier}-${billing}`;
@@ -37,6 +39,7 @@ Deno.serve(async (req) => {
     }
 
     if (!priceId) {
+      console.error(`Invalid price selection: tier=${tier}, billing=${billing}, accessPass=${accessPass}`);
       return Response.json({ error: 'Invalid tier or billing cycle' }, { status: 400 });
     }
 
@@ -58,8 +61,8 @@ Deno.serve(async (req) => {
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
         user_email: user.email,
-        tier: accessPass ? 'standard' : tier,
-        access_pass: accessPass.toString(),
+        tier: finalTier,
+        expiration_days: accessPass ? '7' : undefined,
       }
     };
 
