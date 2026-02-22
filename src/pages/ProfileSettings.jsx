@@ -367,6 +367,23 @@ export default function ProfileSettings() {
         </Button>
       </div>
 
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6">
+            <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2">Cancel Subscription?</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Your subscription will be canceled, but you'll retain full access until the end of your current billing period. You can resubscribe anytime.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowCancelConfirm(false)} className="flex-1 rounded-xl">Keep Plan</Button>
+              <Button onClick={cancelSubscription} disabled={canceling} className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white">
+                {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel Subscription"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6">
