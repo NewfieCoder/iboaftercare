@@ -5,11 +5,13 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Menu, Home, MessageCircle, TrendingUp, BookOpen, Users, Settings, 
   Crown, ClipboardList, Sparkles, Shield, Flag, Edit, TestTube, LogOut,
-  Brain, Trophy
+  Brain, Trophy, Search, Lock
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const menuSections = {
   main: [
@@ -42,6 +44,7 @@ export default function NavigationMenu({ currentPageName }) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadUser();
@@ -63,12 +66,48 @@ export default function NavigationMenu({ currentPageName }) {
     return requiredRoles.includes(user?.role);
   };
 
+  const isPremiumUnlocked = () => {
+    // Check admin full unlock mode
+    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true" && user?.role === "admin";
+    // Check tier simulation
+    const simulatedTier = localStorage.getItem("adminTierSimulation");
+    const simulatedPremium = simulatedTier === "Premium" || simulatedTier === "Standard";
+    // Regular premium or tester
+    const regularPremium = profile?.premium || user?.role === "tester";
+    
+    return adminUnlocked || simulatedPremium || regularPremium;
+  };
+
+  const filterMenuItems = (items) => {
+    if (!searchQuery.trim()) return items;
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
   const handleLogout = async () => {
     await base44.auth.logout();
   };
 
   const MenuContent = () => (
     <div className="py-4">
+      {/* Admin Full Unlock Banner */}
+      <AnimatePresence>
+        {localStorage.getItem("adminFullUnlock") === "true" && user?.role === "admin" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-4 mb-4 p-3 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-xl"
+          >
+            <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-2">
+              <Crown className="w-3 h-3" />
+              Full Unlock Active – Testing Mode
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* User Info */}
       <div className="px-4 mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-3 mb-2">
@@ -102,86 +141,153 @@ export default function NavigationMenu({ currentPageName }) {
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <div className="space-y-1 px-2 mb-4">
-        <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-          Main
-        </p>
-        {menuSections.main.map((item) => (
-          <Link
-            key={item.page}
-            to={createPageUrl(item.page)}
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-              currentPageName === item.page
-                ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <item.icon className="w-4 h-4" />
-            <span className="text-sm font-medium">{item.name}</span>
-          </Link>
-        ))}
+      {/* Search Bar */}
+      <div className="px-4 mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search menu..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 rounded-xl text-sm"
+          />
+        </div>
       </div>
+
+      {/* Main Navigation */}
+      {filterMenuItems(menuSections.main).length > 0 && (
+        <div className="space-y-1 px-2 mb-4">
+          <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+            Main
+          </p>
+          <AnimatePresence mode="popLayout">
+            {filterMenuItems(menuSections.main).map((item) => (
+              <motion.div
+                key={item.page}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link
+                  to={createPageUrl(item.page)}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                    currentPageName === item.page
+                      ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Wellness Tools */}
-      <div className="space-y-1 px-2 mb-4">
-        <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-          Wellness Tools
-        </p>
-        {menuSections.wellness.map((item) => (
-          <Link
-            key={item.page}
-            to={createPageUrl(item.page)}
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-              currentPageName === item.page
-                ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <item.icon className="w-4 h-4" />
-            <span className="text-sm font-medium">{item.name}</span>
-            {item.premium && !profile?.premium && (
-              <Crown className="w-3 h-3 ml-auto text-amber-500" />
-            )}
-          </Link>
-        ))}
-      </div>
+      {filterMenuItems(menuSections.wellness).length > 0 && (
+        <div className="space-y-1 px-2 mb-4">
+          <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+            Wellness Tools
+          </p>
+          <AnimatePresence mode="popLayout">
+            {filterMenuItems(menuSections.wellness).map((item) => {
+              const isLocked = item.premium && !isPremiumUnlocked();
+              return (
+                <motion.div
+                  key={item.page}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative group"
+                >
+                  <Link
+                    to={isLocked ? "#" : createPageUrl(item.page)}
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.preventDefault();
+                      } else {
+                        setOpen(false);
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                      isLocked
+                        ? "opacity-60 cursor-not-allowed"
+                        : currentPageName === item.page
+                        ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{item.name}</span>
+                    {item.premium && (
+                      <Crown className={`w-3 h-3 ml-auto ${isLocked ? "text-amber-400" : "text-amber-500"}`} />
+                    )}
+                  </Link>
+                  {isLocked && (
+                    <div className="absolute inset-0 flex items-center justify-end pr-3 pointer-events-none">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 dark:bg-slate-700 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap -translate-x-12">
+                        Upgrade to access
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Role-Specific */}
-      {menuSections.roleSpecific.some(item => hasRole(item.roles)) && (
+      {filterMenuItems(menuSections.roleSpecific.filter(item => hasRole(item.roles))).length > 0 && (
         <div className="space-y-1 px-2 mb-4">
           <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
             Admin & Tools
           </p>
-          {menuSections.roleSpecific
-            .filter(item => hasRole(item.roles))
-            .map((item) => (
-              <Link
+          <AnimatePresence mode="popLayout">
+            {filterMenuItems(menuSections.roleSpecific.filter(item => hasRole(item.roles))).map((item) => (
+              <motion.div
                 key={item.page}
-                to={createPageUrl(item.page)}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-                  currentPageName === item.page
-                    ? "bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
-                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
               >
-                <item.icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{item.name}</span>
-              </Link>
+                <Link
+                  to={createPageUrl(item.page)}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                    currentPageName === item.page
+                      ? "bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+              </motion.div>
             ))}
+          </AnimatePresence>
         </div>
       )}
 
       {/* Upgrade Prompt */}
-      {!profile?.premium && (
-        <div className="px-4 mb-4">
+      {!isPremiumUnlocked() && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="px-4 mb-4"
+        >
           <Link
             to={createPageUrl("ProfileSettings")}
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border border-amber-200 dark:border-amber-800 hover:shadow-md transition-all"
+            className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border border-amber-200 dark:border-amber-800 hover:shadow-md transition-all duration-200"
           >
             <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             <div className="flex-1">
@@ -189,7 +295,7 @@ export default function NavigationMenu({ currentPageName }) {
               <p className="text-xs text-amber-700 dark:text-amber-400">Unlock AI coach & more</p>
             </div>
           </Link>
-        </div>
+        </motion.div>
       )}
 
       {/* Settings & Logout */}
