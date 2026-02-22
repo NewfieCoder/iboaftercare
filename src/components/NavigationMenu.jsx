@@ -342,15 +342,19 @@ export default function NavigationMenu({ currentPageName }) {
         </Sheet>
       </div>
 
-      {/* Desktop Dropdown */}
-      <div className="hidden lg:block">
+      {/* Desktop/Tablet Dropdown */}
+      <div className="hidden md:block">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" className="rounded-xl gap-2 hover:bg-white/50 dark:hover:bg-slate-800/50">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
+            <Button 
+              variant="ghost" 
+              className="rounded-xl gap-2 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all duration-200"
+              aria-label="Open navigation menu"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
                 {user?.full_name?.[0]?.toUpperCase() || "U"}
               </div>
-              <span className="text-sm font-medium">{user?.full_name || "Menu"}</span>
+              <span className="text-sm font-medium hidden lg:inline">{user?.full_name?.split(" ")[0] || "Menu"}</span>
               <Menu className="w-4 h-4 text-slate-400" />
             </Button>
           </SheetTrigger>
