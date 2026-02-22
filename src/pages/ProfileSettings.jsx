@@ -19,6 +19,8 @@ export default function ProfileSettings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showSubscriptions, setShowSubscriptions] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -56,6 +58,26 @@ export default function ProfileSettings() {
       await base44.entities.UserProfile.update(profile.id, { dark_mode: val });
     }
     window.dispatchEvent(new CustomEvent("darkModeToggle", { detail: val }));
+  }
+
+  async function cancelSubscription() {
+    setCanceling(true);
+    try {
+      const response = await base44.functions.invoke('cancelSubscription', {});
+      if (response.data.success) {
+        alert('✅ Subscription canceled. You'll retain access until the end of your billing period.');
+        // Reload profile to get updated status
+        const profiles = await base44.entities.UserProfile.list();
+        if (profiles.length > 0) {
+          setProfile(profiles[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Cancellation error:', error);
+      alert('Unable to cancel subscription. Please try again or contact support.');
+    }
+    setCanceling(false);
+    setShowCancelConfirm(false);
   }
 
   async function deleteAllData() {
@@ -181,12 +203,30 @@ export default function ProfileSettings() {
               ? `You're currently on the ${profile.premium_tier} plan with full access to premium features.` 
               : 'Upgrade to unlock AI coaching, advanced analytics, and premium features.'}
           </p>
-          <Button
-            onClick={() => setShowSubscriptions(true)}
-            className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
-          >
-            {profile?.premium ? 'Manage Subscription' : 'View Plans'}
-          </Button>
+          {profile?.subscription_status === 'canceled' && profile?.subscription_expiration_date && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                ⚠️ Subscription canceled. Access until {new Date(profile.subscription_expiration_date).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowSubscriptions(true)}
+              className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
+            >
+              {profile?.premium ? 'Manage Subscription' : 'View Plans'}
+            </Button>
+            {profile?.premium && profile?.stripe_subscription_id && profile?.subscription_status !== 'canceled' && (
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelConfirm(true)}
+                className="rounded-xl border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

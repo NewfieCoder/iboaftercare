@@ -52,19 +52,19 @@ import CoachChat from './pages/CoachChat';
 import Community from './pages/Community';
 import EditorDashboard from './pages/EditorDashboard';
 import Home from './pages/Home';
+import MilestoneChallenges from './pages/MilestoneChallenges';
+import MindfulnessStudio from './pages/MindfulnessStudio';
 import ModeratorDashboard from './pages/ModeratorDashboard';
 import Onboarding from './pages/Onboarding';
 import PrepToolkit from './pages/PrepToolkit';
 import Privacy from './pages/Privacy';
 import ProfileSettings from './pages/ProfileSettings';
 import Progress from './pages/Progress';
+import RecoveryConnector from './pages/RecoveryConnector';
 import Resources from './pages/Resources';
 import StudyLibrary from './pages/StudyLibrary';
 import TesterFeedback from './pages/TesterFeedback';
 import WellnessPlanner from './pages/WellnessPlanner';
-import RecoveryConnector from './pages/RecoveryConnector';
-import MilestoneChallenges from './pages/MilestoneChallenges';
-import MindfulnessStudio from './pages/MindfulnessStudio';
 import __Layout from './Layout.jsx';
 
 
@@ -74,19 +74,19 @@ export const PAGES = {
     "Community": Community,
     "EditorDashboard": EditorDashboard,
     "Home": Home,
+    "MilestoneChallenges": MilestoneChallenges,
+    "MindfulnessStudio": MindfulnessStudio,
     "ModeratorDashboard": ModeratorDashboard,
     "Onboarding": Onboarding,
     "PrepToolkit": PrepToolkit,
     "Privacy": Privacy,
     "ProfileSettings": ProfileSettings,
     "Progress": Progress,
+    "RecoveryConnector": RecoveryConnector,
     "Resources": Resources,
     "StudyLibrary": StudyLibrary,
     "TesterFeedback": TesterFeedback,
     "WellnessPlanner": WellnessPlanner,
-    "RecoveryConnector": RecoveryConnector,
-    "MilestoneChallenges": MilestoneChallenges,
-    "MindfulnessStudio": MindfulnessStudio,
 }
 
 export const pagesConfig = {
