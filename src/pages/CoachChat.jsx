@@ -127,7 +127,8 @@ export default function CoachChat() {
     const crisisWords = [
       "suicide", "suicidal", "kill myself", "end my life", "want to die", 
       "self-harm", "hurt myself", "no reason to live", "better off dead",
-      "overdose", "end it all"
+      "overdose", "end it all", "hopeless", "give up", "can't go on", 
+      "nothing left", "worthless", "burden"
     ];
     if (crisisWords.some(w => msg.toLowerCase().includes(w))) {
       setShowCrisis(true);
@@ -220,7 +221,7 @@ export default function CoachChat() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide</h2>
+            <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide - AI Coach</h2>
             <p className="text-xs text-emerald-600 dark:text-emerald-400">
               {isPremium ? "Premium" : `${sessionCount}/5 daily sessions`}
             </p>
