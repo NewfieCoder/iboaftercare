@@ -224,7 +224,7 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-24 md:pb-20" : ""}`}>
+      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-36 md:pb-40" : ""}`}>
         {children}
       </main>
 
