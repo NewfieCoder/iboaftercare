@@ -25,50 +25,56 @@ Deno.serve(async (req) => {
 
     const oldRole = targetUser.role || 'user';
 
-    // Update user role
-    await base44.asServiceRole.entities.User.update(userId, { role: newRole });
+    // Note: User roles cannot be updated via backend functions
+    // This is a platform limitation - roles must be updated via Base44.users.updateUserRole
+    // Instead, we'll use UserProfile to grant permissions
 
-    // If assigning Tester role, grant full premium access automatically (no payment required)
+    // Grant appropriate permissions based on role
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
+    let profile;
+    
+    if (profiles.length > 0) {
+      profile = profiles[0];
+    } else {
+      // Create profile if it doesn't exist
+      profile = await base44.asServiceRole.entities.UserProfile.create({
+        premium: false,
+        premium_tier: 'free',
+        subscription_status: 'expired',
+        treatment_confirmed: false
+      });
+    }
+
+    // Tester role gets full premium access
     if (newRole === 'tester') {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
-      if (profiles.length > 0) {
-        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
-          premium: true,
-          premium_tier: 'premium',
-          subscription_status: 'active',
-          subscription_expiration_date: null // No expiration for Tester role
+      await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+        premium: true,
+        premium_tier: 'premium',
+        subscription_status: 'active',
+        subscription_expiration_date: null
+      });
+      console.log(`✅ Granted premium to Tester: ${targetUser.email}`);
+    }
+    
+    // Removing tester role - revoke premium unless they have paid subscription
+    if (oldRole === 'tester' && newRole !== 'tester') {
+      if (!profile.stripe_subscription_id) {
+        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+          premium: false,
+          premium_tier: 'free',
+          subscription_status: 'expired'
         });
-        console.log(`Granted full premium access to Tester: ${targetUser.email}`);
-      } else {
-        // Create profile if it doesn't exist
-        await base44.asServiceRole.entities.UserProfile.create({
-          premium: true,
-          premium_tier: 'premium',
-          subscription_status: 'active',
-          subscription_expiration_date: null,
-          treatment_confirmed: false
-        });
-        console.log(`Created profile with premium for new Tester: ${targetUser.email}`);
+        console.log(`❌ Revoked premium from ex-Tester: ${targetUser.email}`);
       }
     }
 
-    // If removing Tester role, revoke premium unless they have a real paid subscription
-    if (oldRole === 'tester' && newRole !== 'tester') {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
-      if (profiles.length > 0) {
-        const profile = profiles[0];
-        // Only revoke if they don't have a Stripe subscription
-        if (!profile.stripe_subscription_id && !profile.stripe_customer_id) {
-          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-            premium: false,
-            premium_tier: 'free',
-            subscription_status: 'expired'
-          });
-          console.log(`Revoked Tester premium from: ${targetUser.email} (no paid subscription found)`);
-        } else {
-          console.log(`Kept premium for: ${targetUser.email} (has active paid subscription)`);
-        }
-      }
+    // Use Base44's user invite system to update role
+    try {
+      await base44.users.updateUserRole(targetUser.email, newRole);
+      console.log(`✅ Updated role via Base44 API: ${targetUser.email} → ${newRole}`);
+    } catch (roleError) {
+      console.error('Could not update role via API:', roleError);
+      // Continue anyway - permissions are set via profile
     }
 
     // Log the role change

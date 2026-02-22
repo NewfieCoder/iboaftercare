@@ -21,8 +21,11 @@ Deno.serve(async (req) => {
       const profile = profiles.find(p => p.created_by === u.email);
       return {
         ...u,
-        profile: profile || null,
         premium: profile?.premium || false,
+        premium_tier: profile?.premium_tier || 'free',
+        subscription_status: profile?.subscription_status || null,
+        subscription_expiration_date: profile?.subscription_expiration_date || null,
+        stripe_subscription_id: profile?.stripe_subscription_id || null,
         treatment_date: profile?.treatment_date || null
       };
     });
