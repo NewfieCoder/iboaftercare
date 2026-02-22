@@ -37,6 +37,7 @@ export default function UserManagement({ adminEmail }) {
   const [manualTier, setManualTier] = useState("standard");
   const [manualDays, setManualDays] = useState("");
   const [manualReason, setManualReason] = useState("");
+  const [subLoading, setSubLoading] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -93,8 +94,12 @@ export default function UserManagement({ adminEmail }) {
   }
 
   async function handleManualSubscription(action) {
-    if (!selectedSubUser) return;
+    if (!selectedSubUser) {
+      toast.error("No user selected");
+      return;
+    }
     
+    setSubLoading(true);
     try {
       const result = await base44.functions.invoke('adminManualSubscription', {
         userId: selectedSubUser.id,
@@ -106,9 +111,12 @@ export default function UserManagement({ adminEmail }) {
       
       toast.success(result.data.message);
       setShowSubDialog(false);
-      loadUsers();
+      setSubLoading(false);
+      await loadUsers();
     } catch (e) {
+      console.error('Manual subscription error:', e);
       toast.error(e.message || "Failed to update subscription");
+      setSubLoading(false);
     }
   }
 
@@ -476,21 +484,28 @@ export default function UserManagement({ adminEmail }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSubDialog(false)} className="rounded-xl">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSubDialog(false)} 
+              className="rounded-xl"
+              disabled={subLoading}
+            >
               Cancel
             </Button>
             <Button 
               onClick={() => handleManualSubscription('revoke')} 
               className="rounded-xl bg-red-600 hover:bg-red-700"
               variant="destructive"
+              disabled={subLoading}
             >
-              Revoke Subscription
+              {subLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Revoke Subscription'}
             </Button>
             <Button 
               onClick={() => handleManualSubscription('grant')} 
               className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
+              disabled={subLoading}
             >
-              Grant Access
+              {subLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Grant Access'}
             </Button>
           </DialogFooter>
         </DialogContent>
