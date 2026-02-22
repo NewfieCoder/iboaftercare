@@ -154,6 +154,19 @@ export default function Layout({ children, currentPageName }) {
           transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
         }
 
+        /* User select: none for UI controls */
+        button, a, nav, .no-select, [role="button"], [role="tab"], [role="menuitem"] {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+
+        /* Keep user-select enabled for readable content */
+        p, article, .prose, .markdown, [role="article"], textarea, input[type="text"], 
+        .journal-content, .forum-content, .resource-content {
+          user-select: text;
+          -webkit-user-select: text;
+        }
+
         /* Elegant serif for headings */
         h1, h2, h3, .serif-heading {
           font-family: 'Cormorant', serif;
@@ -228,6 +241,12 @@ export default function Layout({ children, currentPageName }) {
                   <Link
                     key={item.page}
                     to={createPageUrl(item.page)}
+                    onClick={(e) => {
+                      if (isActive) {
+                        e.preventDefault();
+                        window.location.href = createPageUrl(item.page);
+                      }
+                    }}
                     className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
                       isActive
                         ? "text-emerald-600 dark:text-emerald-400"
