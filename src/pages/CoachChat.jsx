@@ -60,15 +60,21 @@ export default function CoachChat() {
     const convs = await base44.agents.listConversations({ agent_name: "iboGuide" });
     setConversations(convs);
     
-    // Check premium status (or Tester role which grants free premium)
+    // Check premium status
     const user = await base44.auth.me();
     const profiles = await base44.entities.UserProfile.list();
     const hasPremium = profiles.length > 0 && profiles[0].premium;
     const isTester = user?.role === 'tester';
     
-    // Check admin tier simulation
+    // Admin full unlock mode (highest priority)
+    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true" && user?.role === "admin";
+    
+    // Check tier simulation
     const simulatedTier = localStorage.getItem("adminTierSimulation");
-    if (simulatedTier) {
+    
+    if (adminUnlocked) {
+      setIsPremium(true);
+    } else if (simulatedTier && user?.role === "admin") {
       setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
     } else {
       setIsPremium(hasPremium || isTester);
@@ -90,11 +96,16 @@ export default function CoachChat() {
   }
 
   async function startNewConversation() {
-    // Check tier simulation first
+    // Admin full unlock overrides everything
+    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
+    
+    // Check tier simulation (only if not fully unlocked)
     const simulatedTier = localStorage.getItem("adminTierSimulation");
     let effectivePremium = isPremium;
     
-    if (simulatedTier === "Free") {
+    if (adminUnlocked) {
+      effectivePremium = true;
+    } else if (simulatedTier === "Free") {
       effectivePremium = false;
     } else if (simulatedTier === "Premium" || simulatedTier === "Standard") {
       effectivePremium = true;
