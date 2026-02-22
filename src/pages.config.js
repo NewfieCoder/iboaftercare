@@ -48,7 +48,6 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Admin from './pages/Admin';
-import CoachChat from './pages/CoachChat';
 import Community from './pages/Community';
 import EditorDashboard from './pages/EditorDashboard';
 import Home from './pages/Home';
@@ -65,12 +64,12 @@ import Resources from './pages/Resources';
 import StudyLibrary from './pages/StudyLibrary';
 import TesterFeedback from './pages/TesterFeedback';
 import WellnessPlanner from './pages/WellnessPlanner';
+import CoachChat from './pages/CoachChat';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
-    "CoachChat": CoachChat,
     "Community": Community,
     "EditorDashboard": EditorDashboard,
     "Home": Home,
@@ -87,6 +86,7 @@ export const PAGES = {
     "StudyLibrary": StudyLibrary,
     "TesterFeedback": TesterFeedback,
     "WellnessPlanner": WellnessPlanner,
+    "CoachChat": CoachChat,
 }
 
 export const pagesConfig = {
