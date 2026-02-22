@@ -11,11 +11,18 @@ Deno.serve(async (req) => {
 
     const { userId, action, tier, expirationDays, reason } = await req.json();
 
-    // Get target user
-    const targetUser = await base44.asServiceRole.entities.User.get(userId);
+    console.log('Manual subscription request:', { userId, action, tier, expirationDays });
+
+    // Get target user - use list since get may not work with user IDs
+    const allUsers = await base44.asServiceRole.entities.User.list();
+    const targetUser = allUsers.find(u => u.id === userId);
+    
     if (!targetUser) {
+      console.error(`User not found with ID: ${userId}`);
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
+
+    console.log(`Found user: ${targetUser.email}`);
 
     // Get user profile
     const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
