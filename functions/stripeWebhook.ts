@@ -6,9 +6,8 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
 });
 
 Deno.serve(async (req) => {
-  // Set up base44 client first
   const base44 = createClientFromRequest(req);
-  
+
   try {
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
@@ -19,33 +18,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Webhook secret not configured' }, { status: 500 });
     }
 
-    // Verify webhook signature - MUST use async version for Deno
-    const event = await stripe.webhooks.constructEventAsync(
-      body,
-      signature,
-      webhookSecret
-    );
-
+    const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     console.log('Webhook event type:', event.type);
 
-    // Handle checkout completion - INSTANT UNLOCK
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const userEmail = session.metadata.user_email;
-      const tier = session.metadata.tier;
-      const expirationDays = session.metadata.expiration_days;
+      const userEmail = session.metadata?.user_email?.toLowerCase();
+      const userId = session.metadata?.user_id;
+      const tier = session.metadata?.tier?.toLowerCase();
+      const expirationDays = session.metadata?.expiration_days;
       const isAccessPass = expirationDays !== undefined && expirationDays !== null;
 
-      console.log('✅ Checkout completed:', { userEmail, tier, isAccessPass, expirationDays });
+      if (!userEmail || !tier) {
+        console.error('Missing metadata: user_email or tier');
+        return Response.json({ received: true });
+      }
 
-      // Get or create user profile
+      console.log('✅ Checkout completed:', { userId, userEmail, tier, isAccessPass });
+
+      // FIXED: Use created_by for lookup
       let profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
         created_by: userEmail 
       });
 
       if (profiles.length === 0) {
-        // Create profile if doesn't exist
         const newProfile = await base44.asServiceRole.entities.UserProfile.create({
+          created_by: userEmail,
           premium: true,
           premium_tier: tier,
           subscription_status: 'active',
@@ -56,6 +54,7 @@ Deno.serve(async (req) => {
         console.log('✅ Created new profile for:', userEmail);
       }
 
+      const profileId = profiles[0].id;
       const updateData = {
         premium: true,
         premium_tier: tier,
@@ -63,65 +62,71 @@ Deno.serve(async (req) => {
         stripe_customer_id: session.customer,
       };
 
-      // Set expiration for access passes
       if (isAccessPass) {
         const days = parseInt(expirationDays) || 7;
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + days);
         updateData.subscription_expiration_date = expirationDate.toISOString();
-        console.log(`✅ ${days}-day pass expires:`, expirationDate.toISOString());
       } else {
-        // For recurring subscriptions
         updateData.stripe_subscription_id = session.subscription;
-        updateData.subscription_expiration_date = null; // No expiration
-        console.log('✅ Recurring subscription activated');
+        updateData.subscription_expiration_date = null;
       }
 
-      await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
-      console.log(`✅ INSTANT UNLOCK: ${userEmail} → ${tier} tier (premium: true, status: active)`);
+      // Update with retry
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          await base44.asServiceRole.entities.UserProfile.update(profileId, updateData);
+          console.log(`✅ Profile updated (attempt ${attempt}): ${userEmail} → ${tier}`);
+          break;
+        } catch (e) {
+          console.error(`Update failed (attempt ${attempt}):`, e);
+          if (attempt === 2) {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: 'your-email@example.com', // ← REPLACE
+              subject: 'Webhook Update Failed',
+              body: `Failed to update ${userEmail} to ${tier}. Error: ${e.message}`
+            });
+          }
+        }
+      }
 
-      // Send success email notification
+      // Success email
       try {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: userEmail,
-          subject: `IboAftercare - ${tier.charAt(0).toUpperCase() + tier.slice(1)} Access Activated! 🎉`,
-          body: `Your ${tier} subscription is now active! All ${tier} features are unlocked. Thank you for joining IboAftercare Coach. Access your account at: https://iboaftercare.base44.app`
+          subject: `IBO Aftercare - ${tier} Access Activated!`,
+          body: `Your ${tier} access is active! Features unlocked. https://iboaftercare.base44.app`
         });
-        console.log(`📧 Sent activation email to: ${userEmail}`);
-      } catch (emailError) {
-        console.error('Failed to send activation email:', emailError);
+      } catch (e) {
+        console.error('Email failed:', e);
       }
     }
 
-    // Handle subscription updates
+    // Handle subscription updated (cancel at period end, past_due, etc.)
     if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;
-      const userEmail = subscription.metadata.user_email;
-      
-      console.log('Subscription updated for:', userEmail, 'Status:', subscription.status);
+      const userEmail = subscription.metadata?.user_email?.toLowerCase();
+
+      if (!userEmail) return Response.json({ received: true });
 
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
         created_by: userEmail 
       });
 
       if (profiles.length > 0) {
-        // If subscription is canceled but still active (cancel_at_period_end), set expiration
+        const profile = profiles[0];
         if (subscription.cancel_at_period_end) {
           const expirationDate = new Date(subscription.current_period_end * 1000);
-          await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             subscription_status: 'canceled',
             subscription_expiration_date: expirationDate.toISOString(),
           });
-          console.log('Subscription canceled at period end for:', userEmail, 'Expires:', expirationDate);
-        } 
-        // If subscription is past_due or inactive, downgrade immediately
-        else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
-          await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+        } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             premium: false,
             premium_tier: 'free',
             subscription_status: 'expired',
           });
-          console.log('Downgraded profile for:', userEmail);
         }
       }
     }
@@ -129,9 +134,9 @@ Deno.serve(async (req) => {
     // Handle subscription deletion
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
-      const userEmail = subscription.metadata.user_email;
+      const userEmail = subscription.metadata?.user_email?.toLowerCase();
 
-      console.log('Subscription deleted for:', userEmail);
+      if (!userEmail) return Response.json({ received: true });
 
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
         created_by: userEmail 
@@ -144,7 +149,6 @@ Deno.serve(async (req) => {
           subscription_status: 'expired',
           stripe_subscription_id: null,
         });
-        console.log('Removed premium from:', userEmail);
       }
     }
 
