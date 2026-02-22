@@ -11,54 +11,46 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user profile
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({
-      created_by: user.email.toLowerCase()
+    // Get user's profile to find subscription ID
+    const profiles = await base44.entities.UserProfile.filter({ 
+      created_by: user.email 
     });
 
-    if (profiles.length === 0) {
-      return Response.json({ success: false, error: 'No profile found' }, { status: 404 });
+    if (profiles.length === 0 || !profiles[0].stripe_subscription_id) {
+      return Response.json({ error: 'No active subscription found' }, { status: 404 });
     }
 
     const profile = profiles[0];
 
-    if (!profile.stripe_subscription_id) {
-      return Response.json({ success: false, error: 'No active subscription found' }, { status: 400 });
-    }
+    // Cancel subscription at period end (user retains access until end of billing cycle)
+    const subscription = await stripe.subscriptions.update(
+      profile.stripe_subscription_id,
+      {
+        cancel_at_period_end: true,
+      }
+    );
 
-    // Cancel subscription at period end (safe default)
-    await stripe.subscriptions.update(profile.stripe_subscription_id, {
-      cancel_at_period_end: true
-    });
+    // Calculate expiration date
+    const expirationDate = new Date(subscription.current_period_end * 1000);
 
-    // Update profile to reflect cancellation
-    await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+    // Update profile immediately to reflect canceled status
+    await base44.entities.UserProfile.update(profile.id, {
       subscription_status: 'canceled',
-      // Keep expiration as-is (period end date will be set by Stripe)
+      subscription_expiration_date: expirationDate.toISOString(),
     });
 
-    // Log the action
-    await base44.asServiceRole.entities.AdminActivityLog.create({
-      admin_email: user.email, // or 'system' if user-initiated
-      action_type: 'subscription_canceled',
-      details: `User ${user.email} canceled subscription ${profile.stripe_subscription_id}`,
-      target_entity_id: profile.id
-    });
-
-    console.log(`✅ Subscription canceled at period end for: ${user.email}`);
+    console.log('Subscription canceled for:', user.email, 'Expires:', expirationDate);
 
     return Response.json({ 
       success: true, 
-      message: 'Subscription canceled successfully. Access retained until end of billing period.'
+      message: 'Subscription canceled successfully',
+      expires_at: expirationDate.toISOString()
     });
   } catch (error) {
-    console.error('Cancel subscription error:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message || 'Failed to cancel subscription'
-    }, { status: 500 });
+    console.error('Subscription cancellation error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
