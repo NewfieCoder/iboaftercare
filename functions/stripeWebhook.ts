@@ -33,9 +33,10 @@ Deno.serve(async (req) => {
       const session = event.data.object;
       const userEmail = session.metadata.user_email;
       const tier = session.metadata.tier;
-      const isAccessPass = session.metadata.access_pass === 'true';
+      const expirationDays = session.metadata.expiration_days;
+      const isAccessPass = expirationDays !== undefined && expirationDays !== null;
 
-      console.log('Checkout completed for:', userEmail, 'Tier:', tier, 'Access Pass:', isAccessPass);
+      console.log('Checkout completed for:', userEmail, 'Tier:', tier, 'Access Pass:', isAccessPass, 'Expiration Days:', expirationDays);
 
       // Update user's profile with premium status
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
@@ -50,11 +51,13 @@ Deno.serve(async (req) => {
           stripe_customer_id: session.customer,
         };
 
-        // If it's an access pass, set expiration to 7 days from now
+        // If it's an access pass, set expiration based on days
         if (isAccessPass) {
+          const days = parseInt(expirationDays) || 7;
           const expirationDate = new Date();
-          expirationDate.setDate(expirationDate.getDate() + 7);
+          expirationDate.setDate(expirationDate.getDate() + days);
           updateData.subscription_expiration_date = expirationDate.toISOString();
+          console.log(`Setting expiration for ${days}-day pass:`, expirationDate);
         } else {
           // For subscriptions, store subscription ID
           updateData.stripe_subscription_id = session.subscription;

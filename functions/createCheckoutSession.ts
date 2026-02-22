@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
         user_email: user.email,
         tier: finalTier,
-        expiration_days: accessPass ? '7' : undefined,
+        ...(accessPass && { expiration_days: '7' }),
       }
     };
 
