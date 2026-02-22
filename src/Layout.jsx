@@ -9,6 +9,7 @@ import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
 import Logo from "@/components/Logo";
 import MobileHeader from "@/components/MobileHeader";
+import PullToRefresh from "@/components/PullToRefresh";
 import { AnimatePresence, motion } from "framer-motion";
 
 const navItems = [
@@ -55,8 +56,13 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [darkMode]);
 
+  const handleRefresh = async () => {
+    window.location.reload();
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 relative overflow-hidden`}>
+      <PullToRefresh onRefresh={handleRefresh} />
       {/* Nature-inspired background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />

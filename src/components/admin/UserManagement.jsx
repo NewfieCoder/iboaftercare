@@ -47,9 +47,9 @@ export default function UserManagement({ adminEmail }) {
     try {
       const { data } = await base44.functions.invoke('adminGetUsers');
       setUsers(data || []);
-      setProfiles([]);
       setLoading(false);
     } catch (e) {
+      console.error('Load users error:', e);
       toast.error("Failed to load users");
       setLoading(false);
     }
@@ -79,8 +79,9 @@ export default function UserManagement({ adminEmail }) {
       }
       
       setShowRoleDialog(false);
-      loadUsers();
+      await loadUsers();
     } catch (e) {
+      console.error('Role change error:', e);
       toast.error(e.message || "Failed to change user role");
     }
   }
