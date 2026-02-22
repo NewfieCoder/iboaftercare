@@ -8,7 +8,6 @@ import HabitWidget from "@/components/dashboard/HabitWidget";
 import QuickActions from "@/components/dashboard/QuickActions";
 import MilestoneCard from "@/components/dashboard/MilestoneCard";
 import WelcomeTutorial from "@/components/WelcomeTutorial";
-import IntegrationCalendar from "@/components/dashboard/IntegrationCalendar";
 import SplashScreen from "@/components/SplashScreen";
 import { Loader2 } from "lucide-react";
 
@@ -90,11 +89,13 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Milestone */}
-        <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
-
-        {/* Integration Calendar */}
-        <IntegrationCalendar />
+        {/* Recovery Journey */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-white" style={{ fontFamily: "'Cormorant', serif" }}>
+            Recovery Journey
+          </h2>
+          <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
+        </div>
 
         {/* Quick Actions */}
         <QuickActions />
