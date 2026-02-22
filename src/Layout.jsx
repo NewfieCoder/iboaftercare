@@ -9,7 +9,7 @@ import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
 import Logo from "@/components/Logo";
 import MobileHeader from "@/components/MobileHeader";
-import { AnimatePresence, motion } from "framer-motion";
+import DisclaimerBanner from "@/components/DisclaimerBanner";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
