@@ -3,89 +3,74 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Verify admin access for scheduled task
-    const user = await base44.auth.me();
-    if (user?.role !== 'admin') {
+    const admin = await base44.auth.me();
+
+    // Admin-only function (for scheduled automation)
+    if (admin?.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const now = new Date();
-    console.log('Checking expired subscriptions at:', now.toISOString());
-
-    // Get all profiles with expiration dates
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({});
     
-    let expiredCount = 0;
-    let notifiedCount = 0;
+    // Get all profiles with active subscriptions
+    const activeProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+      subscription_status: 'active',
+      premium: true
+    });
 
-    for (const profile of profiles) {
-      // Skip if no expiration date or already free
-      if (!profile.subscription_expiration_date || profile.premium_tier === 'free') {
-        continue;
-      }
+    let expiredCount = 0;
+    let warned1DayCount = 0;
+
+    for (const profile of activeProfiles) {
+      // Skip if no expiration date (recurring subs)
+      if (!profile.subscription_expiration_date) continue;
 
       const expirationDate = new Date(profile.subscription_expiration_date);
-      const oneDayBeforeExpiration = new Date(expirationDate);
-      oneDayBeforeExpiration.setDate(oneDayBeforeExpiration.getDate() - 1);
+      const daysUntilExpiry = Math.ceil((expirationDate - now) / (1000 * 60 * 60 * 24));
 
-      // Check if subscription has expired
-      if (now >= expirationDate) {
-        // Revert to free tier
+      // Expired - revert to free tier
+      if (expirationDate <= now) {
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
           premium: false,
           premium_tier: 'free',
-          subscription_status: 'expired',
-          subscription_expiration_date: null,
+          subscription_status: 'expired'
         });
-
-        // Send expiration notification email
+        
+        // Send expiration notice
         try {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: profile.created_by,
             subject: 'Your IboAftercare Access Has Expired',
-            body: `
-              <h2>Your Premium Access Has Ended</h2>
-              <p>Your IboAftercare subscription or access pass has expired.</p>
-              <p>To continue enjoying premium features, please renew your subscription:</p>
-              <a href="https://iboaftercare.base44.app/ProfileSettings" style="display: inline-block; background: #14b8a6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Renew Now</a>
-              <p>Thank you for being part of our recovery community!</p>
-            `
+            body: `Your premium access has expired. You're now on the free tier with limited features.\n\nUpgrade anytime to restore unlimited access!`
           });
-        } catch (emailError) {
-          console.error('Failed to send expiration email:', emailError);
+        } catch (e) {
+          console.error('Failed to send expiration email:', e);
         }
-
+        
         expiredCount++;
-        console.log('Expired and downgraded:', profile.created_by);
+        console.log(`⏰ Expired: ${profile.created_by} - reverted to free tier`);
       }
-      // Send reminder 1 day before expiration
-      else if (now >= oneDayBeforeExpiration && now < expirationDate) {
+      // Warn 1 day before expiration
+      else if (daysUntilExpiry === 1) {
         try {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: profile.created_by,
-            subject: 'Your IboAftercare Access Expires Soon',
-            body: `
-              <h2>Your Access Expires Tomorrow</h2>
-              <p>Your IboAftercare premium access will expire in less than 24 hours.</p>
-              <p>Renew now to avoid interruption:</p>
-              <a href="https://iboaftercare.base44.app/ProfileSettings" style="display: inline-block; background: #14b8a6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Renew Now</a>
-              <p>Continue your recovery journey without interruption.</p>
-            `
+            subject: '⏰ Your IboAftercare Access Expires Tomorrow',
+            body: `Your premium access will expire in 24 hours.\n\nRenew now to keep unlimited access to all features!`
           });
-          notifiedCount++;
-          console.log('Sent expiration reminder to:', profile.created_by);
-        } catch (emailError) {
-          console.error('Failed to send reminder email:', emailError);
+          warned1DayCount++;
+          console.log(`⚠️ 1-day warning sent to: ${profile.created_by}`);
+        } catch (e) {
+          console.error('Failed to send warning email:', e);
         }
       }
     }
 
     return Response.json({ 
       success: true,
-      expired: expiredCount,
-      reminded: notifiedCount,
-      checked_at: now.toISOString()
+      expiredCount,
+      warned1DayCount,
+      message: `Processed ${activeProfiles.length} profiles: ${expiredCount} expired, ${warned1DayCount} warned`
     });
   } catch (error) {
     console.error('Error checking expired subscriptions:', error);

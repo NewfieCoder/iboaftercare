@@ -24,11 +24,33 @@ export default function Home() {
       const u = await base44.auth.me();
       setUser(u);
       const profiles = await base44.entities.UserProfile.list();
-      
-      // If user has Tester role, ensure premium is granted
-      if (u?.role === 'tester' && profiles.length > 0 && !profiles[0].premium) {
-        await base44.entities.UserProfile.update(profiles[0].id, { premium: true });
-        profiles[0].premium = true;
+
+      // Check for expired subscriptions
+      if (profiles.length > 0) {
+        const profile = profiles[0];
+        if (profile.subscription_expiration_date) {
+          const expirationDate = new Date(profile.subscription_expiration_date);
+          if (expirationDate <= new Date() && profile.premium) {
+            // Auto-revert to free tier on expiration
+            await base44.entities.UserProfile.update(profile.id, {
+              premium: false,
+              premium_tier: 'free',
+              subscription_status: 'expired'
+            });
+            profiles[0].premium = false;
+            profiles[0].premium_tier = 'free';
+          }
+        }
+
+        // If user has Tester role, ensure premium is granted
+        if (u?.role === 'tester' && !profiles[0].premium) {
+          await base44.entities.UserProfile.update(profiles[0].id, { 
+            premium: true,
+            premium_tier: 'premium',
+            subscription_status: 'active'
+          });
+          profiles[0].premium = true;
+        }
       }
       
       if (profiles.length === 0 || !profiles[0]?.onboarding_complete) {
