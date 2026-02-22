@@ -28,21 +28,46 @@ Deno.serve(async (req) => {
     // Update user role
     await base44.asServiceRole.entities.User.update(userId, { role: newRole });
 
-    // If assigning Tester role, grant premium access automatically
+    // If assigning Tester role, grant full premium access automatically (no payment required)
     if (newRole === 'tester') {
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
       if (profiles.length > 0) {
-        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, { premium: true });
+        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+          premium: true,
+          premium_tier: 'premium',
+          subscription_status: 'active',
+          subscription_expiration_date: null // No expiration for Tester role
+        });
+        console.log(`Granted full premium access to Tester: ${targetUser.email}`);
+      } else {
+        // Create profile if it doesn't exist
+        await base44.asServiceRole.entities.UserProfile.create({
+          premium: true,
+          premium_tier: 'premium',
+          subscription_status: 'active',
+          subscription_expiration_date: null,
+          treatment_confirmed: false
+        });
+        console.log(`Created profile with premium for new Tester: ${targetUser.email}`);
       }
     }
 
-    // If removing Tester role, revoke premium unless they have a real subscription
+    // If removing Tester role, revoke premium unless they have a real paid subscription
     if (oldRole === 'tester' && newRole !== 'tester') {
-      // Here you could check for actual subscription status
-      // For now, we'll revoke premium when Tester is removed
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
       if (profiles.length > 0) {
-        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, { premium: false });
+        const profile = profiles[0];
+        // Only revoke if they don't have a Stripe subscription
+        if (!profile.stripe_subscription_id && !profile.stripe_customer_id) {
+          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+            premium: false,
+            premium_tier: 'free',
+            subscription_status: 'expired'
+          });
+          console.log(`Revoked Tester premium from: ${targetUser.email} (no paid subscription found)`);
+        } else {
+          console.log(`Kept premium for: ${targetUser.email} (has active paid subscription)`);
+        }
       }
     }
 
