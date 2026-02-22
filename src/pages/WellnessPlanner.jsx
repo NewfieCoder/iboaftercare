@@ -9,6 +9,7 @@ import PremiumUpsell from "@/components/PremiumUpsell";
 
 export default function WellnessPlanner() {
   const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);
   const [plans, setPlans] = useState([]);
   const [generating, setGenerating] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -20,9 +21,11 @@ export default function WellnessPlanner() {
 
   async function loadData() {
     try {
+      const currentUser = await base44.auth.me().catch(() => null);
       const profiles = await base44.entities.UserProfile.list();
       const wellnessPlans = await base44.entities.WellnessPlan.list('-created_date');
       
+      setUser(currentUser);
       if (profiles.length > 0) setProfile(profiles[0]);
       setPlans(wellnessPlans);
     } catch (e) {
@@ -96,14 +99,13 @@ Return JSON: {days: [{day: 1, practice: "", duration: "", focus: ""}]}`
   }
 
   // Premium check (Tester/Admin bypass + paid subscription)
-  const user = await base44.auth.me().catch(() => null);
   const hasPremiumAccess = 
     user?.role === "admin" || 
     user?.role === "tester" || 
     localStorage.getItem("adminFullUnlock") === "true" ||
     (profile?.premium === true && profile?.subscription_status === "active");
 
-  if (!hasPremiumAccess) {
+  if (!loading && !hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto p-6">

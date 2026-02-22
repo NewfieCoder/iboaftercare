@@ -66,6 +66,7 @@ const challenges = [
 
 export default function MilestoneChallenges() {
   const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);
   const [completedChallenges, setCompletedChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -76,7 +77,10 @@ export default function MilestoneChallenges() {
 
   async function loadData() {
     try {
+      const currentUser = await base44.auth.me().catch(() => null);
       const profiles = await base44.entities.UserProfile.list();
+      
+      setUser(currentUser);
       if (profiles.length > 0) {
         setProfile(profiles[0]);
         // Load completed challenges from profile (stored as JSON string)
@@ -116,14 +120,13 @@ export default function MilestoneChallenges() {
   }
 
   // Premium check (Tester/Admin bypass + paid subscription)
-  const user = await base44.auth.me().catch(() => null);
   const hasPremiumAccess = 
     user?.role === "admin" || 
     user?.role === "tester" || 
     localStorage.getItem("adminFullUnlock") === "true" ||
     (profile?.premium === true && profile?.subscription_status === "active");
 
-  if (!hasPremiumAccess) {
+  if (!loading && !hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto px-4 py-4">

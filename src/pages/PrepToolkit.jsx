@@ -63,6 +63,7 @@ const checklistTemplates = {
 
 export default function PrepToolkit() {
   const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);
   const [checklists, setChecklists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -73,28 +74,33 @@ export default function PrepToolkit() {
 
   async function loadData() {
     try {
+      const currentUser = await base44.auth.me().catch(() => null);
       const profiles = await base44.entities.UserProfile.list();
       const userChecklists = await base44.entities.PrepChecklist.list();
       
+      setUser(currentUser);
       if (profiles.length > 0) setProfile(profiles[0]);
       setChecklists(userChecklists);
+      
+      // Create default checklists if none exist
+      if (userChecklists.length === 0 && profiles[0]?.user_type === "pre-treatment") {
+        for (const [type, template] of Object.entries(checklistTemplates)) {
+          await base44.entities.PrepChecklist.create({
+            checklist_type: type,
+            items: template.items.map(item => ({ ...item, completed: false })),
+            completed_count: 0,
+            total_count: template.items.length
+          });
+        }
+        // Reload after creating
+        const reloadedChecklists = await base44.entities.PrepChecklist.list();
+        setChecklists(reloadedChecklists);
+      }
     } catch (e) {
       console.error('Failed to load data:', e);
+    } finally {
+      setLoading(false);
     }
-    
-    // Create default checklists if none exist
-    if (userChecklists.length === 0 && profiles[0]?.user_type === "pre-treatment") {
-      for (const [type, template] of Object.entries(checklistTemplates)) {
-        await base44.entities.PrepChecklist.create({
-          checklist_type: type,
-          items: template.items.map(item => ({ ...item, completed: false })),
-          completed_count: 0,
-          total_count: template.items.length
-        });
-      }
-      loadData();
-    }
-    setLoading(false);
   }
 
   async function toggleItem(checklistId, itemIndex) {
@@ -131,14 +137,13 @@ export default function PrepToolkit() {
   }
 
   // Premium check (Tester/Admin bypass + paid subscription)
-  const user = await base44.auth.me().catch(() => null);
   const hasPremiumAccess = 
     user?.role === "admin" || 
     user?.role === "tester" || 
     localStorage.getItem("adminFullUnlock") === "true" ||
     (profile?.premium === true && profile?.subscription_status === "active");
 
-  if (!hasPremiumAccess) {
+  if (!loading && !hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto p-6">
