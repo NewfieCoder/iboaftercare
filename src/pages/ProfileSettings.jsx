@@ -65,7 +65,7 @@ export default function ProfileSettings() {
     try {
       const response = await base44.functions.invoke('cancelSubscription', {});
       if (response.data.success) {
-        alert('✅ Subscription canceled. You'll retain access until the end of your billing period.');
+        alert("✅ Subscription canceled. You'll retain access until the end of your billing period.");
         // Reload profile to get updated status
         const profiles = await base44.entities.UserProfile.list();
         if (profiles.length > 0) {
