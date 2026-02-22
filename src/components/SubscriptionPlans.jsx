@@ -74,7 +74,8 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
       return;
     }
 
-    setLoading(isAccessPass ? 'access-pass' : tier);
+    const loadingKey = isAccessPass ? (tier === 'premium' ? 'premium-pass' : 'access-pass') : tier;
+    setLoading(loadingKey);
     try {
       const response = await base44.functions.invoke('createCheckoutSession', { 
         tier, 
