@@ -99,6 +99,9 @@ export default function Layout({ children, currentPageName }) {
           --color-accent: #3B82F6;
           --color-warm: #F59E0B;
         }
+        html, body {
+          overscroll-behavior: none;
+        }
         .dark {
           color-scheme: dark;
         }
@@ -158,7 +161,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {!hideNav && (
-        <header className="hidden md:block fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10 no-select">
+        <header className="hidden md:block fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10 no-select" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
               <Logo variant="icon" className="w-8 h-8" />
@@ -167,7 +170,7 @@ export default function Layout({ children, currentPageName }) {
                   IboAftercare Coach
                 </span>
                 {userRole && userRole !== 'user' && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     userRole === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
                     userRole === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
                     userRole === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
@@ -227,7 +230,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 safe-area-bottom no-select">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 no-select" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center justify-around px-2 py-2">
               {navItems.map((item) => {
                 const isActive = currentPageName === item.page;

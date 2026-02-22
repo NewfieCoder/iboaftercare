@@ -11,7 +11,7 @@ export default function MobileHeader({ currentPageName }) {
   if (currentPageName === "Onboarding") return null;
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-white/10 safe-area-top no-select">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-white/10 no-select" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="flex items-center justify-between px-4 h-14">
         {isRootPage ? (
           <Logo variant="icon" className="w-8 h-8" />
