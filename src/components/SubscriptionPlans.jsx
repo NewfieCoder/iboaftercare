@@ -206,6 +206,72 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
         );
       })}
       </div>
+
+      {/* 7-Day Access Pass */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mt-8 glass rounded-3xl p-6 border border-amber-300 dark:border-amber-700 relative overflow-hidden"
+        style={{ boxShadow: '0 0 30px rgba(251, 191, 36, 0.2)' }}
+      >
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+          TRY IT OUT
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
+            <Zap className="w-7 h-7 text-white" />
+          </div>
+          
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">
+              7-Day Standard Access Pass
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+              Try all Standard tier features for 7 days. Perfect for short-term needs or testing before committing.
+            </p>
+            <ul className="grid grid-cols-2 gap-2 text-xs text-slate-700 dark:text-slate-300">
+              <li className="flex items-start gap-1">
+                <Check className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                AI coach (50 msgs)
+              </li>
+              <li className="flex items-start gap-1">
+                <Check className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                Progress analytics
+              </li>
+              <li className="flex items-start gap-1">
+                <Check className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                Wellness planner
+              </li>
+              <li className="flex items-start gap-1">
+                <Check className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                Data export
+              </li>
+            </ul>
+          </div>
+          
+          <div className="text-center shrink-0">
+            <div className="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+              $5
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              One-time payment
+            </p>
+            <Button
+              onClick={() => handleSubscribe('standard', true)}
+              disabled={loading !== null}
+              className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg hover:shadow-xl transition-all"
+            >
+              {loading === 'access-pass' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Get 7-Day Pass'
+              )}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
