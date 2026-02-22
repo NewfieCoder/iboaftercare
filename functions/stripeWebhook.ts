@@ -78,7 +78,19 @@ Deno.serve(async (req) => {
       }
 
       await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
-      console.log(`✅ INSTANT UNLOCK: ${userEmail} → ${tier} tier (premium: true)`);
+      console.log(`✅ INSTANT UNLOCK: ${userEmail} → ${tier} tier (premium: true, status: active)`);
+
+      // Send success email notification
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: userEmail,
+          subject: `IboAftercare - ${tier.charAt(0).toUpperCase() + tier.slice(1)} Access Activated! 🎉`,
+          body: `Your ${tier} subscription is now active! All ${tier} features are unlocked. Thank you for joining IboAftercare Coach. Access your account at: https://iboaftercare.base44.app`
+        });
+        console.log(`📧 Sent activation email to: ${userEmail}`);
+      } catch (emailError) {
+        console.error('Failed to send activation email:', emailError);
+      }
     }
 
     // Handle subscription updates

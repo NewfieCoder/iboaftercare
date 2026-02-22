@@ -19,12 +19,17 @@ export default function WellnessPlanner() {
   }, []);
 
   async function loadData() {
-    const profiles = await base44.entities.UserProfile.list();
-    const wellnessPlans = await base44.entities.WellnessPlan.list('-created_date');
-    
-    if (profiles.length > 0) setProfile(profiles[0]);
-    setPlans(wellnessPlans);
-    setLoading(false);
+    try {
+      const profiles = await base44.entities.UserProfile.list();
+      const wellnessPlans = await base44.entities.WellnessPlan.list('-created_date');
+      
+      if (profiles.length > 0) setProfile(profiles[0]);
+      setPlans(wellnessPlans);
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function generatePlan(planType) {
@@ -90,7 +95,15 @@ Return JSON: {days: [{day: 1, practice: "", duration: "", focus: ""}]}`
     }
   }
 
-  if (!profile?.premium) {
+  // Premium check (Tester/Admin bypass + paid subscription)
+  const user = await base44.auth.me().catch(() => null);
+  const hasPremiumAccess = 
+    user?.role === "admin" || 
+    user?.role === "tester" || 
+    localStorage.getItem("adminFullUnlock") === "true" ||
+    (profile?.premium === true && profile?.subscription_status === "active");
+
+  if (!hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto p-6">
@@ -100,25 +113,10 @@ Return JSON: {days: [{day: 1, practice: "", duration: "", focus: ""}]}`
               Premium Feature
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              AI-powered Wellness Planner is available with Premium subscription.
+              AI-powered Wellness Planner is available with Premium or Standard subscription.
             </p>
-            <Button 
-              onClick={async () => {
-                if (window.self !== window.top) {
-                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
-                  return;
-                }
-                try {
-                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'premium' });
-                  if (response.data.url) window.location.href = response.data.url;
-                } catch (error) {
-                  console.error('Checkout error:', error);
-                  setShowUpsell(true);
-                }
-              }}
-              className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600"
-            >
-              Upgrade to Premium
+            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+              Upgrade Now
             </Button>
           </Card>
         </div>

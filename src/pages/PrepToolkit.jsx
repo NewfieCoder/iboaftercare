@@ -72,11 +72,15 @@ export default function PrepToolkit() {
   }, []);
 
   async function loadData() {
-    const profiles = await base44.entities.UserProfile.list();
-    const userChecklists = await base44.entities.PrepChecklist.list();
-    
-    if (profiles.length > 0) setProfile(profiles[0]);
-    setChecklists(userChecklists);
+    try {
+      const profiles = await base44.entities.UserProfile.list();
+      const userChecklists = await base44.entities.PrepChecklist.list();
+      
+      if (profiles.length > 0) setProfile(profiles[0]);
+      setChecklists(userChecklists);
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    }
     
     // Create default checklists if none exist
     if (userChecklists.length === 0 && profiles[0]?.user_type === "pre-treatment") {
@@ -126,7 +130,15 @@ export default function PrepToolkit() {
     );
   }
 
-  if (!profile?.premium) {
+  // Premium check (Tester/Admin bypass + paid subscription)
+  const user = await base44.auth.me().catch(() => null);
+  const hasPremiumAccess = 
+    user?.role === "admin" || 
+    user?.role === "tester" || 
+    localStorage.getItem("adminFullUnlock") === "true" ||
+    (profile?.premium === true && profile?.subscription_status === "active");
+
+  if (!hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto p-6">
@@ -136,10 +148,10 @@ export default function PrepToolkit() {
               Premium Feature
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              The Pre-Treatment Prep Toolkit is available with Premium subscription.
+              The Pre-Treatment Prep Toolkit is available with Premium or Standard subscription.
             </p>
             <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
-              Upgrade to Premium
+              Upgrade Now
             </Button>
           </Card>
         </div>

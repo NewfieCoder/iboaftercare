@@ -65,9 +65,14 @@ export default function MindfulnessStudio() {
   }, [isPlaying]);
 
   async function loadData() {
-    const profiles = await base44.entities.UserProfile.list();
-    if (profiles.length > 0) setProfile(profiles[0]);
-    setLoading(false);
+    try {
+      const profiles = await base44.entities.UserProfile.list();
+      if (profiles.length > 0) setProfile(profiles[0]);
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function checkDeviceMotion() {
@@ -96,7 +101,15 @@ export default function MindfulnessStudio() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!profile?.premium) {
+  // Premium check (Tester/Admin bypass + paid subscription)
+  const user = await base44.auth.me().catch(() => null);
+  const hasPremiumAccess = 
+    user?.role === "admin" || 
+    user?.role === "tester" || 
+    localStorage.getItem("adminFullUnlock") === "true" ||
+    (profile?.premium === true && profile?.subscription_status === "active");
+
+  if (!hasPremiumAccess) {
     return (
       <>
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -106,24 +119,9 @@ export default function MindfulnessStudio() {
               Premium Feature
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Mindfulness Studio with guided sessions is available with Premium subscription.
+              Mindfulness Studio is available with Premium subscription only.
             </p>
-            <Button 
-              onClick={async () => {
-                if (window.self !== window.top) {
-                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
-                  return;
-                }
-                try {
-                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'premium' });
-                  if (response.data.url) window.location.href = response.data.url;
-                } catch (error) {
-                  console.error('Checkout error:', error);
-                  setShowUpsell(true);
-                }
-              }}
-              className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600"
-            >
+            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
               Upgrade to Premium
             </Button>
           </Card>

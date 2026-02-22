@@ -67,18 +67,21 @@ export default function NavigationMenu({ currentPageName }) {
   };
 
   const isPremiumUnlocked = () => {
-    // Check admin full unlock mode (highest priority for testing)
-    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true" && user?.role === "admin";
+    // Admin & Tester = Always unlocked
+    if (user?.role === "admin" || user?.role === "tester") return true;
+    
+    // Admin full unlock mode for testing
+    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
     if (adminUnlocked) return true;
     
-    // Check tier simulation (admin testing specific tier restrictions)
+    // Tier simulation (admin testing)
     const simulatedTier = localStorage.getItem("adminTierSimulation");
-    if (simulatedTier && user?.role === "admin") {
+    if (simulatedTier) {
       return simulatedTier === "Premium" || simulatedTier === "Standard";
     }
     
-    // Regular premium subscription or tester free access
-    return profile?.premium || user?.role === "tester";
+    // CRITICAL: Paid subscription check (premium=true + status=active)
+    return profile?.premium === true && profile?.subscription_status === "active";
   };
 
   const filterMenuItems = (items) => {
