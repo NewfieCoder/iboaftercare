@@ -33,8 +33,9 @@ Deno.serve(async (req) => {
       const session = event.data.object;
       const userEmail = session.metadata.user_email;
       const tier = session.metadata.tier;
+      const isAccessPass = session.metadata.access_pass === 'true';
 
-      console.log('Checkout completed for:', userEmail, 'Tier:', tier);
+      console.log('Checkout completed for:', userEmail, 'Tier:', tier, 'Access Pass:', isAccessPass);
 
       // Update user's profile with premium status
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
@@ -42,11 +43,27 @@ Deno.serve(async (req) => {
       });
 
       if (profiles.length > 0) {
-        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+        const updateData = {
           premium: true,
           premium_tier: tier,
-        });
-        console.log('Updated profile for:', userEmail);
+          subscription_status: 'active',
+          stripe_customer_id: session.customer,
+        };
+
+        // If it's an access pass, set expiration to 7 days from now
+        if (isAccessPass) {
+          const expirationDate = new Date();
+          expirationDate.setDate(expirationDate.getDate() + 7);
+          updateData.subscription_expiration_date = expirationDate.toISOString();
+        } else {
+          // For subscriptions, store subscription ID
+          updateData.stripe_subscription_id = session.subscription;
+          // No expiration date for active subscriptions
+          updateData.subscription_expiration_date = null;
+        }
+
+        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
+        console.log('Updated profile for:', userEmail, 'with immediate unlock');
       }
     }
 
@@ -55,18 +72,28 @@ Deno.serve(async (req) => {
       const subscription = event.data.object;
       const userEmail = subscription.metadata.user_email;
       
-      console.log('Subscription updated for:', userEmail);
+      console.log('Subscription updated for:', userEmail, 'Status:', subscription.status);
 
-      // Update profile if subscription is canceled or past_due
-      if (subscription.status === 'canceled' || subscription.status === 'past_due') {
-        const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
-          created_by: userEmail 
-        });
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
+        created_by: userEmail 
+      });
 
-        if (profiles.length > 0) {
+      if (profiles.length > 0) {
+        // If subscription is canceled but still active (cancel_at_period_end), set expiration
+        if (subscription.cancel_at_period_end) {
+          const expirationDate = new Date(subscription.current_period_end * 1000);
+          await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+            subscription_status: 'canceled',
+            subscription_expiration_date: expirationDate.toISOString(),
+          });
+          console.log('Subscription canceled at period end for:', userEmail, 'Expires:', expirationDate);
+        } 
+        // If subscription is past_due or inactive, downgrade immediately
+        else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
           await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
             premium: false,
             premium_tier: 'free',
+            subscription_status: 'expired',
           });
           console.log('Downgraded profile for:', userEmail);
         }
@@ -88,6 +115,8 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
           premium: false,
           premium_tier: 'free',
+          subscription_status: 'expired',
+          stripe_subscription_id: null,
         });
         console.log('Removed premium from:', userEmail);
       }

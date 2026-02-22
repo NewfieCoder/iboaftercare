@@ -14,18 +14,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tier, billing = 'monthly' } = await req.json();
+    const { tier, billing = 'monthly', accessPass = false } = await req.json();
 
     // Map tiers to price IDs
     const priceIds = {
       'standard-monthly': 'price_1T35QJIca4bvjpuWlT5QG642',  // $9.99/month
       'standard-annual': 'price_1T36kfIca4bvjpuWRlXZBE6f',   // $109.89/year
       'premium-monthly': 'price_1T35QLIca4bvjpuWqNKqfMcK',   // $19.99/month
-      'premium-annual': 'price_1T36kfIca4bvjpuWJIwv695y'     // $219.89/year
+      'premium-annual': 'price_1T36kfIca4bvjpuWJIwv695y',    // $219.89/year
+      'access-pass': 'price_1T3eNMIca4bvjpuWcMz428ZX'        // $5 one-time 7-day pass
     };
 
-    const priceKey = `${tier}-${billing}`;
-    const priceId = priceIds[priceKey];
+    let priceId;
+    let mode = 'subscription';
+
+    if (accessPass) {
+      priceId = priceIds['access-pass'];
+      mode = 'payment';
+    } else {
+      const priceKey = `${tier}-${billing}`;
+      priceId = priceIds[priceKey];
+    }
+
     if (!priceId) {
       return Response.json({ error: 'Invalid tier or billing cycle' }, { status: 400 });
     }
@@ -33,9 +43,8 @@ Deno.serve(async (req) => {
     // Get origin from request or use default
     const origin = req.headers.get('origin') || req.headers.get('referer')?.split('?')[0].replace(/\/$/, '') || 'https://iboaftercare.base44.app';
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+    const sessionConfig = {
+      mode: mode,
       payment_method_types: ['card'],
       line_items: [
         {
@@ -49,16 +58,24 @@ Deno.serve(async (req) => {
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
         user_email: user.email,
-        tier: tier,
-      },
-      subscription_data: {
+        tier: accessPass ? 'standard' : tier,
+        access_pass: accessPass.toString(),
+      }
+    };
+
+    // Add subscription_data only for subscriptions
+    if (mode === 'subscription') {
+      sessionConfig.subscription_data = {
         metadata: {
           base44_app_id: Deno.env.get('BASE44_APP_ID'),
           user_email: user.email,
           tier: tier,
         }
-      }
-    });
+      };
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return Response.json({ url: session.url });
   } catch (error) {
