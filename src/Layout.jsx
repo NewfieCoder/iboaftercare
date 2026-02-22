@@ -9,7 +9,7 @@ import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
 import Logo from "@/components/Logo";
 import MobileHeader from "@/components/MobileHeader";
-import DisclaimerBanner from "@/components/DisclaimerBanner";
+import { AnimatePresence, motion } from "framer-motion";
 
 const navItems = [
   { name: "Home", icon: Home, page: "Home" },
@@ -224,16 +224,13 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-32 md:pb-40" : ""}`}>
+      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-24 md:pb-20" : ""}`}>
         {children}
       </main>
 
       {!hideNav && (
         <>
-          <div className="md:hidden fixed bottom-20 left-0 right-0 z-30">
-            <DisclaimerBanner compact />
-          </div>
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-30">
+          <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
           <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 no-select" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -266,9 +263,6 @@ export default function Layout({ children, currentPageName }) {
               })}
             </div>
           </nav>
-          <div className="hidden md:block fixed bottom-16 left-0 right-0 z-30">
-            <DisclaimerBanner compact />
-          </div>
           <div className="hidden md:block fixed bottom-0 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
