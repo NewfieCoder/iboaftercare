@@ -67,18 +67,19 @@ export default function SubscriptionPlans({ currentTier, onSuccess }) {
   const [loading, setLoading] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
 
-  async function handleSubscribe(tier) {
+  async function handleSubscribe(tier, isAccessPass = false) {
     // Check if running in iframe
     if (window.self !== window.top) {
       alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
       return;
     }
 
-    setLoading(tier);
+    setLoading(isAccessPass ? 'access-pass' : tier);
     try {
       const response = await base44.functions.invoke('createCheckoutSession', { 
         tier, 
-        billing: billingCycle 
+        billing: billingCycle,
+        accessPass: isAccessPass
       });
       
       if (response.data.url) {
