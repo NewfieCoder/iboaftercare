@@ -24,32 +24,62 @@ export default function ProfileSettings() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    async function load() {
+  const loadProfile = async () => {
+    try {
       const u = await base44.auth.me();
       setUser(u);
-      const profiles = await base44.entities.UserProfile.list();
+
+      if (!u) {
+        setLoading(false);
+        return;
+      }
+
+      // FIXED: Filter by current user's email (matches created_by / RLS)
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
+        created_by: u.email.toLowerCase() 
+      });
+
       if (profiles.length > 0) {
-        setProfile(profiles[0]);
-        setDarkMode(profiles[0].dark_mode || false);
+        const p = profiles[0];
+
+        // Check expiration
+        let isActive = p.subscription_status === 'active';
+        if (p.subscription_expiration_date) {
+          const expires = new Date(p.subscription_expiration_date);
+          if (expires < new Date()) {
+            isActive = false;
+          }
+        }
+
+        setProfile({
+          ...p,
+          effectivePremium: p.premium && isActive,
+          effectiveTier: isActive ? (p.premium_tier || 'free') : 'free'
+        });
+        setDarkMode(p.dark_mode || false);
+      } else {
+        setProfile(null);
       }
       setLoading(false);
 
-      // Check for Stripe success/cancel params
+      // Handle Stripe redirect params
       if (searchParams.get('success') === 'true') {
-        // Payment successful - show success message
-        setTimeout(() => {
-          alert('🎉 Payment successful! Your premium features are now active.');
-          window.history.replaceState({}, '', '/ProfileSettings');
-        }, 500);
+        alert('🎉 Payment successful! Reloading your premium features...');
+        // Force reload profile
+        await loadProfile();
+        window.history.replaceState({}, '', '/ProfileSettings');
       } else if (searchParams.get('canceled') === 'true') {
-        setTimeout(() => {
-          alert('Payment was canceled. No charges were made.');
-          window.history.replaceState({}, '', '/ProfileSettings');
-        }, 500);
+        alert('Payment canceled. No charges made.');
+        window.history.replaceState({}, '', '/ProfileSettings');
       }
+    } catch (error) {
+      console.error('Profile load error:', error);
+      setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadProfile();
   }, [searchParams]);
 
   async function toggleDarkMode(val) {
@@ -65,16 +95,15 @@ export default function ProfileSettings() {
     try {
       const response = await base44.functions.invoke('cancelSubscription', {});
       if (response.data.success) {
-        alert("✅ Subscription canceled. You'll retain access until the end of your billing period.");
-        // Reload profile to get updated status
-        const profiles = await base44.entities.UserProfile.list();
-        if (profiles.length > 0) {
-          setProfile(profiles[0]);
-        }
+        alert("✅ Subscription canceled. Access retained until end of period.");
+        // Force reload profile to show updated status
+        await loadProfile();
+      } else {
+        alert('Cancellation failed: ' + (response.data.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('Cancellation error:', error);
-      alert('Unable to cancel subscription. Please try again or contact support.');
+      alert('Unable to cancel. Try again or contact support.');
     }
     setCanceling(false);
     setShowCancelConfirm(false);
@@ -82,23 +111,28 @@ export default function ProfileSettings() {
 
   async function deleteAllData() {
     setDeleting(true);
-    // Delete all user data
-    const [moods, journals, habits, goals] = await Promise.all([
-      base44.entities.MoodLog.list(),
-      base44.entities.JournalEntry.list(),
-      base44.entities.HabitTracker.list(),
-      base44.entities.Goal.list(),
-    ]);
-    await Promise.all([
-      ...moods.map(m => base44.entities.MoodLog.delete(m.id)),
-      ...journals.map(j => base44.entities.JournalEntry.delete(j.id)),
-      ...habits.map(h => base44.entities.HabitTracker.delete(h.id)),
-      ...goals.map(g => base44.entities.Goal.delete(g.id)),
-    ]);
-    if (profile) await base44.entities.UserProfile.delete(profile.id);
+    try {
+      const [moods, journals, habits, goals] = await Promise.all([
+        base44.entities.MoodLog.list(),
+        base44.entities.JournalEntry.list(),
+        base44.entities.HabitTracker.list(),
+        base44.entities.Goal.list(),
+      ]);
+      await Promise.all([
+        ...moods.map(m => base44.entities.MoodLog.delete(m.id)),
+        ...journals.map(j => base44.entities.JournalEntry.delete(j.id)),
+        ...habits.map(h => base44.entities.HabitTracker.delete(h.id)),
+        ...goals.map(g => base44.entities.Goal.delete(g.id)),
+      ]);
+      if (profile) await base44.entities.UserProfile.delete(profile.id);
+      alert('All data deleted. Logging out...');
+      base44.auth.logout();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Data deletion failed. Try again.');
+    }
     setDeleting(false);
     setShowDeleteConfirm(false);
-    base44.auth.logout();
   }
 
   if (loading) {
@@ -125,22 +159,17 @@ export default function ProfileSettings() {
               {user?.role && user.role !== 'user' && (
                 <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
                   user.role === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
-                  user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
-                  user.role === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                  user.role === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
-                  ''
+                  user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : ''
                 }`}>
                   {user.role === 'admin' && <Crown className="w-3 h-3" />}
                   {user.role === 'tester' && <Code className="w-3 h-3" />}
-                  {user.role === 'moderator' && <Shield className="w-3 h-3" />}
-                  {user.role === 'editor' && <Eye className="w-3 h-3" />}
                   {user.role}
                 </span>
               )}
-              {profile?.premium && (
+              {profile?.effectivePremium && (
                 <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                   <Crown className="w-3 h-3" />
-                  Premium
+                  {profile.effectiveTier.charAt(0).toUpperCase() + profile.effectiveTier.slice(1)}
                 </span>
               )}
             </div>
@@ -191,17 +220,17 @@ export default function ProfileSettings() {
         <div className="glass border border-white/30 dark:border-white/10 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Subscription</h3>
-            {profile?.premium && (
+            {profile?.effectivePremium && (
               <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 text-amber-700 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-800">
                 <Crown className="w-3 h-3" />
-                {profile.premium_tier === 'premium' ? 'Premium' : 'Standard'}
+                {profile.effectiveTier.charAt(0).toUpperCase() + profile.effectiveTier.slice(1)}
               </span>
             )}
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            {profile?.premium 
-              ? `You're currently on the ${profile.premium_tier} plan with full access to premium features.` 
-              : 'Upgrade to unlock AI coaching, advanced analytics, and premium features.'}
+            {profile?.effectivePremium 
+              ? `You're on the ${profile.effectiveTier} plan with full access.` 
+              : 'Upgrade to unlock premium features.'}
           </p>
           {profile?.subscription_status === 'canceled' && profile?.subscription_expiration_date && (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
@@ -215,9 +244,9 @@ export default function ProfileSettings() {
               onClick={() => setShowSubscriptions(true)}
               className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
             >
-              {profile?.premium ? 'Manage Subscription' : 'View Plans'}
+              {profile?.effectivePremium ? 'Manage Subscription' : 'View Plans'}
             </Button>
-            {profile?.premium && profile?.stripe_subscription_id && profile?.subscription_status !== 'canceled' && (
+            {profile?.effectivePremium && profile?.stripe_subscription_id && profile?.subscription_status !== 'canceled' && (
               <Button
                 variant="outline"
                 onClick={() => setShowCancelConfirm(true)}
@@ -230,18 +259,14 @@ export default function ProfileSettings() {
         </div>
       ) : (
         <div className="space-y-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowSubscriptions(false)}
-            className="rounded-xl"
-          >
+          <Button variant="outline" onClick={() => setShowSubscriptions(false)} className="rounded-xl">
             ← Back to Settings
           </Button>
           <SubscriptionPlans 
-            currentTier={profile?.premium ? profile.premium_tier : 'free'} 
-            onSuccess={() => {
+            currentTier={profile?.effectiveTier || 'free'} 
+            onSuccess={async () => {
               setShowSubscriptions(false);
-              window.location.reload();
+              await loadProfile(); // Reload to show new status
             }}
           />
         </div>
