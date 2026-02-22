@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     console.log('Webhook event type:', event.type);
 
-    // Handle checkout completion
+    // Handle checkout completion - INSTANT UNLOCK
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const userEmail = session.metadata.user_email;
@@ -36,38 +36,49 @@ Deno.serve(async (req) => {
       const expirationDays = session.metadata.expiration_days;
       const isAccessPass = expirationDays !== undefined && expirationDays !== null;
 
-      console.log('Checkout completed for:', userEmail, 'Tier:', tier, 'Access Pass:', isAccessPass, 'Expiration Days:', expirationDays);
+      console.log('✅ Checkout completed:', { userEmail, tier, isAccessPass, expirationDays });
 
-      // Update user's profile with premium status
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
+      // Get or create user profile
+      let profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
         created_by: userEmail 
       });
 
-      if (profiles.length > 0) {
-        const updateData = {
+      if (profiles.length === 0) {
+        // Create profile if doesn't exist
+        const newProfile = await base44.asServiceRole.entities.UserProfile.create({
           premium: true,
           premium_tier: tier,
           subscription_status: 'active',
           stripe_customer_id: session.customer,
-        };
-
-        // If it's an access pass, set expiration based on days
-        if (isAccessPass) {
-          const days = parseInt(expirationDays) || 7;
-          const expirationDate = new Date();
-          expirationDate.setDate(expirationDate.getDate() + days);
-          updateData.subscription_expiration_date = expirationDate.toISOString();
-          console.log(`Setting expiration for ${days}-day pass:`, expirationDate);
-        } else {
-          // For subscriptions, store subscription ID
-          updateData.stripe_subscription_id = session.subscription;
-          // No expiration date for active subscriptions
-          updateData.subscription_expiration_date = null;
-        }
-
-        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
-        console.log('Updated profile for:', userEmail, 'with immediate unlock');
+          treatment_confirmed: false
+        });
+        profiles = [newProfile];
+        console.log('✅ Created new profile for:', userEmail);
       }
+
+      const updateData = {
+        premium: true,
+        premium_tier: tier,
+        subscription_status: 'active',
+        stripe_customer_id: session.customer,
+      };
+
+      // Set expiration for access passes
+      if (isAccessPass) {
+        const days = parseInt(expirationDays) || 7;
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + days);
+        updateData.subscription_expiration_date = expirationDate.toISOString();
+        console.log(`✅ ${days}-day pass expires:`, expirationDate.toISOString());
+      } else {
+        // For recurring subscriptions
+        updateData.stripe_subscription_id = session.subscription;
+        updateData.subscription_expiration_date = null; // No expiration
+        console.log('✅ Recurring subscription activated');
+      }
+
+      await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
+      console.log(`✅ INSTANT UNLOCK: ${userEmail} → ${tier} tier (premium: true)`);
     }
 
     // Handle subscription updates

@@ -29,52 +29,55 @@ Deno.serve(async (req) => {
     // This is a platform limitation - roles must be updated via Base44.users.updateUserRole
     // Instead, we'll use UserProfile to grant permissions
 
-    // Grant appropriate permissions based on role
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
+    // Get or create user profile
+    let profiles = await base44.asServiceRole.entities.UserProfile.filter({ created_by: targetUser.email });
     let profile;
     
     if (profiles.length > 0) {
       profile = profiles[0];
     } else {
-      // Create profile if it doesn't exist
+      // Create profile if doesn't exist
       profile = await base44.asServiceRole.entities.UserProfile.create({
         premium: false,
         premium_tier: 'free',
         subscription_status: 'expired',
         treatment_confirmed: false
       });
+      console.log(`✅ Created profile for: ${targetUser.email}`);
     }
 
-    // Tester role gets full premium access
+    // TESTER ROLE = INSTANT FREE PREMIUM
     if (newRole === 'tester') {
       await base44.asServiceRole.entities.UserProfile.update(profile.id, {
         premium: true,
         premium_tier: 'premium',
         subscription_status: 'active',
-        subscription_expiration_date: null
+        subscription_expiration_date: null // No expiration
       });
-      console.log(`✅ Granted premium to Tester: ${targetUser.email}`);
+      console.log(`✅ INSTANT UNLOCK: Tester ${targetUser.email} → Premium (free)`);
     }
     
-    // Removing tester role - revoke premium unless they have paid subscription
+    // REVOKING TESTER = REMOVE FREE PREMIUM (unless paid sub)
     if (oldRole === 'tester' && newRole !== 'tester') {
-      if (!profile.stripe_subscription_id) {
+      // Only revoke if no paid Stripe subscription
+      if (!profile.stripe_subscription_id && !profile.stripe_customer_id) {
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
           premium: false,
           premium_tier: 'free',
           subscription_status: 'expired'
         });
-        console.log(`❌ Revoked premium from ex-Tester: ${targetUser.email}`);
+        console.log(`❌ Revoked free premium from ex-Tester: ${targetUser.email}`);
+      } else {
+        console.log(`✓ Keeping paid subscription for ex-Tester: ${targetUser.email}`);
       }
     }
 
-    // Use Base44's user invite system to update role
+    // Update platform role via Base44 API
     try {
       await base44.users.updateUserRole(targetUser.email, newRole);
-      console.log(`✅ Updated role via Base44 API: ${targetUser.email} → ${newRole}`);
+      console.log(`✅ Platform role updated: ${targetUser.email} → ${newRole}`);
     } catch (roleError) {
-      console.error('Could not update role via API:', roleError);
-      // Continue anyway - permissions are set via profile
+      console.error('Platform role update failed (continuing):', roleError);
     }
 
     // Log the role change
