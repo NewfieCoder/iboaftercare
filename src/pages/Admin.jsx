@@ -3,16 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { 
-  Users, Settings, DollarSign, BarChart3, Shield, 
+  Users, Settings, BarChart3, Shield, 
   MessageSquare, BookOpen, Loader2 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
-import MonetizationControls from "@/components/admin/MonetizationControls";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import ForumModeration from "@/components/admin/ForumModeration";
-import TierSimulator from "@/components/admin/TierSimulator";
 
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -50,7 +48,6 @@ export default function AdminPanel() {
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "users", label: "Users", icon: Users },
     { id: "content", label: "Content", icon: BookOpen },
-    { id: "monetization", label: "Monetization", icon: DollarSign },
     { id: "forum", label: "Forum", icon: MessageSquare },
   ];
 
@@ -106,15 +103,9 @@ export default function AdminPanel() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            <AnalyticsDashboard />
-            <TierSimulator />
-          </div>
-        )}
+        {activeTab === "dashboard" && <AnalyticsDashboard />}
         {activeTab === "users" && <UserManagement adminEmail={user.email} />}
         {activeTab === "content" && <ContentManagement adminEmail={user.email} />}
-        {activeTab === "monetization" && <MonetizationControls adminEmail={user.email} />}
         {activeTab === "forum" && <ForumModeration adminEmail={user.email} />}
       </div>
     </div>

@@ -71,9 +71,7 @@ export default function Onboarding() {
       goals: selectedGoals,
       daily_reminder_time: reminderTime,
       onboarding_complete: true,
-      dark_mode: false,
-      premium: false,
-      premium_tier: "free"
+      dark_mode: false
     });
     navigate(createPageUrl("Home"));
   };
