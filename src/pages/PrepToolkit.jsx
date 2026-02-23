@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardList, Heart, BookOpen, Calendar, Lock, Crown } from "lucide-react";
+import { ClipboardList, Heart, BookOpen, Calendar, Lock } from "lucide-react";
 import { toast } from "sonner";
-import PremiumUpsell from "@/components/PremiumUpsell";
+
 
 const checklistTemplates = {
   "medical-screening": {
@@ -66,7 +66,7 @@ export default function PrepToolkit() {
   const [user, setUser] = useState(null);
   const [checklists, setChecklists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showUpsell, setShowUpsell] = useState(false);
+
 
   useEffect(() => {
     loadData();
@@ -133,35 +133,6 @@ export default function PrepToolkit() {
           </p>
         </Card>
       </div>
-    );
-  }
-
-  // Premium check (Tester/Admin bypass + paid subscription)
-  const hasPremiumAccess = 
-    user?.role === "admin" || 
-    user?.role === "tester" || 
-    localStorage.getItem("adminFullUnlock") === "true" ||
-    (profile?.premium === true && profile?.subscription_status === "active");
-
-  if (!loading && !hasPremiumAccess) {
-    return (
-      <>
-        <div className="max-w-4xl mx-auto p-6">
-          <Card className="p-8 text-center">
-            <Crown className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Premium Feature
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-              The Pre-Treatment Prep Toolkit is available with Premium or Standard subscription.
-            </p>
-            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
-              Upgrade Now
-            </Button>
-          </Card>
-        </div>
-        {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} />}
-      </>
     );
   }
 

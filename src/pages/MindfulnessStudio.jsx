@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Play, Pause, RotateCcw, Crown, Smartphone, Loader2 } from "lucide-react";
-import PremiumUpsell from "@/components/PremiumUpsell";
+import { Brain, Play, Pause, RotateCcw, Smartphone, Loader2 } from "lucide-react";
+
 
 const sessions = [
   {
@@ -43,7 +43,7 @@ const sessions = [
 export default function MindfulnessStudio() {
   const [profile, setProfile] = useState(null);
   const [user, setUser] = useState(null);
-  const [showUpsell, setShowUpsell] = useState(false);
+
   const [activeSession, setActiveSession] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [timer, setTimer] = useState(0);

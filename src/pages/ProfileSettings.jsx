@@ -4,7 +4,7 @@ import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Crown, Code, Eye } from "lucide-react";
+import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Code } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import BetaFeedbackForm from "@/components/BetaFeedbackForm";
 
@@ -114,7 +114,6 @@ export default function ProfileSettings() {
                   user.role === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
                   user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : ''
                 }`}>
-                  {user.role === 'admin' && <Crown className="w-3 h-3" />}
                   {user.role === 'tester' && <Code className="w-3 h-3" />}
                   {user.role}
                 </span>

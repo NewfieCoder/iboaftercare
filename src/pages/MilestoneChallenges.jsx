@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Star, Flame, Heart, Brain, Target, Crown, Check, Lock, Sparkles, Loader2 } from "lucide-react";
+import { Trophy, Star, Flame, Heart, Brain, Target, Check, Lock, Sparkles, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import PremiumUpsell from "@/components/PremiumUpsell";
+
 
 const challenges = [
   {
@@ -69,7 +69,7 @@ export default function MilestoneChallenges() {
   const [user, setUser] = useState(null);
   const [completedChallenges, setCompletedChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showUpsell, setShowUpsell] = useState(false);
+
 
   useEffect(() => {
     loadData();
@@ -117,35 +117,6 @@ export default function MilestoneChallenges() {
       spread: 70,
       origin: { y: 0.6 }
     });
-  }
-
-  // Premium check (Tester/Admin bypass + paid subscription)
-  const hasPremiumAccess = 
-    user?.role === "admin" || 
-    user?.role === "tester" || 
-    localStorage.getItem("adminFullUnlock") === "true" ||
-    (profile?.premium === true && profile?.subscription_status === "active");
-
-  if (!loading && !hasPremiumAccess) {
-    return (
-      <>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <Card className="p-8 text-center">
-            <Crown className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Premium Feature
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Milestone Challenges & Badges are available with Premium subscription only.
-            </p>
-            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
-              Upgrade to Premium
-            </Button>
-          </Card>
-        </div>
-        {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} feature="Milestone Challenges" />}
-      </>
-    );
   }
 
   if (loading) {
