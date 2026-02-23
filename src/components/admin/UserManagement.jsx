@@ -32,12 +32,7 @@ export default function UserManagement({ adminEmail }) {
   const [newRole, setNewRole] = useState("");
   const [roleReason, setRoleReason] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [showSubDialog, setShowSubDialog] = useState(false);
-  const [selectedSubUser, setSelectedSubUser] = useState(null);
-  const [manualTier, setManualTier] = useState("standard");
-  const [manualDays, setManualDays] = useState("");
-  const [manualReason, setManualReason] = useState("");
-  const [subLoading, setSubLoading] = useState(false);
+
 
   useEffect(() => {
     loadUsers();
@@ -72,11 +67,7 @@ export default function UserManagement({ adminEmail }) {
         reason: roleReason || `Changed role to ${newRole}`
       });
       
-      if (result.data.premiumGranted) {
-        toast.success(`${selectedUser.email} granted ${newRole} role with FREE premium access`);
-      } else {
-        toast.success(result.data.message);
-      }
+      toast.success(result.data.message);
       
       setShowRoleDialog(false);
       await loadUsers();
@@ -86,46 +77,13 @@ export default function UserManagement({ adminEmail }) {
     }
   }
 
-  function openSubDialog(user) {
-    setSelectedSubUser(user);
-    setManualTier("standard");
-    setManualDays("");
-    setManualReason("");
-    setShowSubDialog(true);
-  }
 
-  async function handleManualSubscription(action) {
-    if (!selectedSubUser) {
-      toast.error("No user selected");
-      return;
-    }
-    
-    setSubLoading(true);
-    try {
-      const result = await base44.functions.invoke('adminManualSubscription', {
-        userId: selectedSubUser.id,
-        action: action,
-        tier: manualTier,
-        expirationDays: manualDays ? parseInt(manualDays) : null,
-        reason: manualReason || `Admin manual ${action} - ${manualTier}`
-      });
-      
-      toast.success(result.data.message);
-      setShowSubDialog(false);
-      setSubLoading(false);
-      await loadUsers();
-    } catch (e) {
-      console.error('Manual subscription error:', e);
-      toast.error(e.message || "Failed to update subscription");
-      setSubLoading(false);
-    }
-  }
 
   function getRoleDescription(role) {
     switch(role) {
       case 'admin': return 'Full access to all features, user management, and settings';
-      case 'tester': return 'FREE Premium tier access for beta testing (no payment required)';
-      case 'user': return 'Standard user access based on subscription tier';
+      case 'tester': return 'Beta testing and feedback role';
+      case 'user': return 'Standard user access';
       default: return '';
     }
   }
@@ -288,7 +246,7 @@ export default function UserManagement({ adminEmail }) {
                           {user.role !== 'tester' && (
                             <DropdownMenuItem onClick={() => openRoleDialog(user, 'tester')}>
                               <Code className="w-4 h-4 mr-2" />
-                              Set as Tester (Free Premium)
+                              Set as Tester
                             </DropdownMenuItem>
                           )}
                           {(user.role && user.role !== 'user') && (
