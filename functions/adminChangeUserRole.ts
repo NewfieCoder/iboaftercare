@@ -23,45 +23,7 @@ Deno.serve(async (req) => {
 
     const oldRole = targetUser.role || 'user';
 
-    let profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
-      created_by: targetUser.email.toLowerCase() 
-    });
-
-    let profile;
-    if (profiles.length > 0) {
-      profile = profiles[0];
-    } else {
-      profile = await base44.asServiceRole.entities.UserProfile.create({
-        created_by: targetUser.email.toLowerCase(),
-        premium: false,
-        premium_tier: 'free',
-        subscription_status: 'expired',
-        treatment_confirmed: false
-      });
-    }
-
-    if (newRole === 'tester') {
-      if (!profile.stripe_subscription_id && profile.subscription_status !== 'active') {
-        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-          premium: true,
-          premium_tier: 'premium',
-          subscription_status: 'active',
-          subscription_expiration_date: null
-        });
-        console.log(`✅ Tester unlock: ${targetUser.email} → premium`);
-      }
-    }
-
-    if (oldRole === 'tester' && newRole !== 'tester') {
-      if (!profile.stripe_subscription_id && profile.subscription_status !== 'active') {
-        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-          premium: false,
-          premium_tier: 'free',
-          subscription_status: 'expired'
-        });
-        console.log(`❌ Revoked Tester premium: ${targetUser.email}`);
-      }
-    }
+    // No subscription management needed - one-time purchase model
 
     try {
       await base44.users.updateUserRole(targetUser.email, newRole);
@@ -78,8 +40,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ 
       success: true, 
-      message: `Role changed to ${newRole}`,
-      premiumGranted: newRole === 'tester' && !profile.stripe_subscription_id
+      message: `Role changed to ${newRole}`
     });
   } catch (error) {
     console.error('Role change error:', error);
