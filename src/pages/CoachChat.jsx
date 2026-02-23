@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Play } from "lucide-react";
+import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Play, Flag } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import CrisisRedirect from "@/components/CrisisRedirect";
+import { toast } from "sonner";
 
 import GuidedSession from "@/components/chat/GuidedSession";
 import AccessibilityControls from "@/components/AccessibilityControls";
@@ -36,6 +37,7 @@ export default function CoachChat() {
   const [showGuidedSession, setShowGuidedSession] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [reportingMsg, setReportingMsg] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -97,7 +99,7 @@ export default function CoachChat() {
       "suicide", "suicidal", "kill myself", "end my life", "want to die", 
       "self-harm", "hurt myself", "no reason to live", "better off dead",
       "overdose", "end it all", "hopeless", "give up", "can't go on", 
-      "nothing left", "worthless", "burden"
+      "nothing left", "worthless", "burden", "end it", "no point", "cut myself"
     ];
     if (crisisWords.some(w => msg.toLowerCase().includes(w))) {
       setShowCrisis(true);
@@ -129,6 +131,21 @@ export default function CoachChat() {
     setCurrentConv(full);
     setMessages(full.messages || []);
     setShowHistory(false);
+  }
+
+  async function reportMessage(message) {
+    try {
+      await base44.entities.AIResponseReport.create({
+        conversation_id: currentConv?.id || "unknown",
+        message_content: message.content,
+        report_reason: "Other",
+        user_comment: "User flagged this response for review"
+      });
+      toast.success("Response reported. Our team will review it.");
+      setReportingMsg(null);
+    } catch (e) {
+      toast.error("Failed to submit report");
+    }
   }
 
   if (loading) {
@@ -191,7 +208,7 @@ export default function CoachChat() {
           <div>
             <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              AI Coach • Unlimited sessions
+              AI Wellness Coach • Not a licensed professional
             </p>
           </div>
         </div>
@@ -253,7 +270,18 @@ export default function CoachChat() {
           </div>
         )}
         {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} />
+          <div key={i} className="group relative">
+            <MessageBubble message={msg} />
+            {msg.role === "assistant" && (
+              <button
+                onClick={() => reportMessage(msg)}
+                className="absolute -right-2 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                title="Report this response"
+              >
+                <Flag className="w-3 h-3 text-slate-400 hover:text-red-600" />
+              </button>
+            )}
+          </div>
         ))}
         <div ref={messagesEndRef} />
       </div>

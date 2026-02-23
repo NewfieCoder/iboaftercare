@@ -53,6 +53,11 @@ export default function Onboarding() {
   const [selectedChallenges, setSelectedChallenges] = useState([]);
   const [selectedGoals, setSelectedGoals] = useState([]);
   const [reminderTime, setReminderTime] = useState("09:00");
+  const [fullName, setFullName] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [gender, setGender] = useState("");
+  const [heightCm, setHeightCm] = useState("");
+  const [weightKg, setWeightKg] = useState("");
   const [saving, setSaving] = useState(false);
 
   const toggleItem = (item, list, setter) => {
@@ -62,8 +67,14 @@ export default function Onboarding() {
   const handleComplete = async () => {
     setSaving(true);
     await base44.entities.UserProfile.create({
+      full_name: fullName,
+      birthdate: birthdate,
+      biological_gender: gender,
+      height_cm: heightCm ? parseFloat(heightCm) : null,
+      weight_kg: weightKg ? parseFloat(weightKg) : null,
       user_type: userType,
       treatment_confirmed: true,
+      age_verified: true,
       treatment_date: treatmentDate,
       treatment_facility: facility,
       primary_reason: primaryReason,
@@ -71,7 +82,8 @@ export default function Onboarding() {
       goals: selectedGoals,
       daily_reminder_time: reminderTime,
       onboarding_complete: true,
-      dark_mode: false
+      dark_mode: false,
+      has_purchased: false
     });
     navigate(createPageUrl("Home"));
   };
@@ -263,6 +275,52 @@ export default function Onboarding() {
       </div>
     </div>,
 
+    // Personal Info
+    <div key="personal" className="px-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">About You</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+        This helps IboGuide personalize your experience (all information is private)
+      </p>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+          <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your name" className="rounded-xl" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Birthdate</label>
+          <Input type="date" value={birthdate} onChange={e => setBirthdate(e.target.value)} className="rounded-xl" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Biological Gender</label>
+          <div className="grid grid-cols-3 gap-2">
+            {["Male", "Female", "Prefer not to say"].map(g => (
+              <button
+                key={g}
+                onClick={() => setGender(g)}
+                className={`p-3 rounded-xl text-sm font-medium transition-all border ${
+                  gender === g 
+                    ? "border-emerald-400 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+                    : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-200"
+                }`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Height (cm)</label>
+            <Input type="number" value={heightCm} onChange={e => setHeightCm(e.target.value)} placeholder="170" className="rounded-xl" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Weight (kg)</label>
+            <Input type="number" value={weightKg} onChange={e => setWeightKg(e.target.value)} placeholder="70" className="rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </div>,
+
     // Reminders
     <div key="reminders" className="px-4">
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Daily Check-in</h2>
@@ -286,6 +344,7 @@ export default function Onboarding() {
     if (step === 1) return userType !== "";
     if (step === 2) return confirmed && treatmentDate;
     if (step === 3) return primaryReason;
+    if (step === 6) return fullName && birthdate && gender;
     return true;
   };
 
