@@ -66,31 +66,8 @@ export default function NavigationMenu({ currentPageName }) {
     return requiredRoles.includes(user?.role);
   };
 
-  const isPremiumUnlocked = () => {
-    // Admin & Tester = Always unlocked
-    if (user?.role === "admin" || user?.role === "tester") return true;
-    
-    // Admin full unlock mode for testing
-    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
-    if (adminUnlocked) return true;
-    
-    // Tier simulation (admin testing)
-    const simulatedTier = localStorage.getItem("adminTierSimulation");
-    if (simulatedTier) {
-      return simulatedTier === "Premium" || simulatedTier === "Standard";
-    }
-    
-    // Check expiration for passes
-    if (profile?.subscription_expiration_date) {
-      const expires = new Date(profile.subscription_expiration_date);
-      if (expires < new Date()) {
-        return false; // Expired
-      }
-    }
-    
-    // Paid subscription check (premium=true + status=active)
-    return profile?.premium === true && profile?.subscription_status === "active";
-  };
+  // All features unlocked by default - one-time purchase model
+  const isPremiumUnlocked = () => true;
 
   const filterMenuItems = (items) => {
     if (!searchQuery.trim()) return items;

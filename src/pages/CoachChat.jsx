@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Crown, Play } from "lucide-react";
+import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Play } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import CrisisRedirect from "@/components/CrisisRedirect";
-import PremiumUpsell from "@/components/PremiumUpsell";
+
 import GuidedSession from "@/components/chat/GuidedSession";
 import AccessibilityControls from "@/components/AccessibilityControls";
 
@@ -32,10 +32,9 @@ export default function CoachChat() {
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
-  const [showPremium, setShowPremium] = useState(false);
+
   const [showGuidedSession, setShowGuidedSession] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
-  const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -60,49 +59,7 @@ export default function CoachChat() {
     const convs = await base44.agents.listConversations({ agent_name: "iboGuide" });
     setConversations(convs);
     
-    // Check premium status
-    const user = await base44.auth.me();
-    
-    // Tester/Admin always have access
-    if (user?.role === 'admin' || user?.role === 'tester') {
-      setIsPremium(true);
-    } else {
-      // Admin full unlock mode
-      const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
-      
-      // Check tier simulation
-      const simulatedTier = localStorage.getItem("adminTierSimulation");
-      
-      if (adminUnlocked) {
-        setIsPremium(true);
-      } else if (simulatedTier) {
-        setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
-      } else {
-        // Check real subscription with expiration
-        const profiles = await base44.entities.UserProfile.filter({ 
-          created_by: user.email.toLowerCase() 
-        });
-        
-        if (profiles.length > 0) {
-          const profile = profiles[0];
-          let isActive = profile.subscription_status === 'active';
-          
-          // Check expiration
-          if (profile.subscription_expiration_date) {
-            const expires = new Date(profile.subscription_expiration_date);
-            if (expires < new Date()) {
-              isActive = false;
-            }
-          }
-          
-          setIsPremium(profile.premium === true && isActive);
-        } else {
-          setIsPremium(false);
-        }
-      }
-    }
-    
-    // Count today's sessions for free tier limit
+    // Count today's sessions
     const today = new Date().toDateString();
     const todaySessions = convs.filter(c => 
       new Date(c.created_date).toDateString() === today
@@ -118,27 +75,6 @@ export default function CoachChat() {
   }
 
   async function startNewConversation() {
-    // Admin full unlock overrides everything
-    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
-    
-    // Check tier simulation (only if not fully unlocked)
-    const simulatedTier = localStorage.getItem("adminTierSimulation");
-    let effectivePremium = isPremium;
-    
-    if (adminUnlocked) {
-      effectivePremium = true;
-    } else if (simulatedTier === "Free") {
-      effectivePremium = false;
-    } else if (simulatedTier === "Premium" || simulatedTier === "Standard") {
-      effectivePremium = true;
-    }
-    
-    // Check free tier limit (5 sessions per day)
-    if (!effectivePremium && sessionCount >= 5) {
-      setShowPremium(true);
-      return;
-    }
-    
     const conv = await base44.agents.createConversation({
       agent_name: "iboGuide",
       metadata: { name: `Session - ${new Date().toLocaleDateString()}` },
@@ -243,7 +179,6 @@ export default function CoachChat() {
   return (
     <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-9rem)]">
       {showCrisis && <CrisisRedirect onClose={() => setShowCrisis(false)} />}
-      {showPremium && <PremiumUpsell onClose={() => setShowPremium(false)} feature="unlimited AI coach sessions" />}
       {showGuidedSession && <GuidedSession sessionType={showGuidedSession} onClose={() => setShowGuidedSession(null)} />}
       <AccessibilityControls onVoiceInput={handleVoiceInput} showVoiceInput={messages.length > 0} />
 
@@ -256,32 +191,11 @@ export default function CoachChat() {
           <div>
             <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              AI Coach • {isPremium ? "Premium" : `${sessionCount}/5 daily sessions`}
+              AI Coach • Unlimited sessions
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!isPremium && (
-            <button
-              onClick={async () => {
-                if (window.self !== window.top) {
-                  alert('Checkout must be completed in the published app. Please open the app in a new tab to subscribe.');
-                  return;
-                }
-                try {
-                  const response = await base44.functions.invoke('createCheckoutSession', { tier: 'standard' });
-                  if (response.data.url) window.location.href = response.data.url;
-                } catch (error) {
-                  console.error('Checkout error:', error);
-                  setShowPremium(true);
-                }
-              }}
-              className="p-2 rounded-xl text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-              title="Upgrade to unlock unlimited sessions"
-            >
-              <Crown className="w-5 h-5" />
-            </button>
-          )}
           <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <History className="w-5 h-5" />
           </button>
