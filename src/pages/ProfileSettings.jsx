@@ -166,19 +166,10 @@ export default function ProfileSettings() {
                   {user.role}
                 </span>
               )}
-              {profile?.effectivePremium && (
-                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
-                  <Crown className="w-3 h-3" />
-                  {profile.effectiveTier.charAt(0).toUpperCase() + profile.effectiveTier.slice(1)}
-                </span>
-              )}
+
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
-            {user?.role === 'tester' && (
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
-                🧪 Free Premium Access (Testing)
-              </p>
-            )}
+
             {profile?.treatment_date && (
               <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                 Treatment: {new Date(profile.treatment_date).toLocaleDateString()}
@@ -215,62 +206,7 @@ export default function ProfileSettings() {
         </div>
       </div>
 
-      {/* Subscription Management */}
-      {!showSubscriptions ? (
-        <div className="glass border border-white/30 dark:border-white/10 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Subscription</h3>
-            {profile?.effectivePremium && (
-              <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 text-amber-700 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-800">
-                <Crown className="w-3 h-3" />
-                {profile.effectiveTier.charAt(0).toUpperCase() + profile.effectiveTier.slice(1)}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            {profile?.effectivePremium 
-              ? `You're on the ${profile.effectiveTier} plan with full access.` 
-              : 'Upgrade to unlock premium features.'}
-          </p>
-          {profile?.subscription_status === 'canceled' && profile?.subscription_expiration_date && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                ⚠️ Subscription canceled. Access until {new Date(profile.subscription_expiration_date).toLocaleDateString()}
-              </p>
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setShowSubscriptions(true)}
-              className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
-            >
-              {profile?.effectivePremium ? 'Manage Subscription' : 'View Plans'}
-            </Button>
-            {profile?.effectivePremium && profile?.stripe_subscription_id && profile?.subscription_status !== 'canceled' && (
-              <Button
-                variant="outline"
-                onClick={() => setShowCancelConfirm(true)}
-                className="rounded-xl border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
-              >
-                Cancel
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <Button variant="outline" onClick={() => setShowSubscriptions(false)} className="rounded-xl">
-            ← Back to Settings
-          </Button>
-          <SubscriptionPlans 
-            currentTier={profile?.effectiveTier || 'free'} 
-            onSuccess={async () => {
-              setShowSubscriptions(false);
-              await loadProfile(); // Reload to show new status
-            }}
-          />
-        </div>
-      )}
+
 
       {/* Recovery Info */}
       {!showSubscriptions && profile && (
@@ -333,8 +269,7 @@ export default function ProfileSettings() {
         </>
       )}
 
-      {/* Admin Tier Simulator */}
-      {user?.role === 'admin' && <TierSimulator />}
+
 
       {/* Admin Panel Access */}
       {user?.role === 'admin' && (
@@ -344,7 +279,7 @@ export default function ProfileSettings() {
             Administrator Tools
           </h3>
           <p className="text-sm text-violet-700 dark:text-violet-300 mb-3">
-            You have admin access. Manage users, content, and monetization.
+            You have admin access. Manage users, content, and community.
           </p>
           <Button
             onClick={() => navigate(createPageUrl("Admin"))}
@@ -392,22 +327,7 @@ export default function ProfileSettings() {
         </Button>
       </div>
 
-      {showCancelConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2">Cancel Subscription?</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-              Your subscription will be canceled, but you'll retain full access until the end of your current billing period. You can resubscribe anytime.
-            </p>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowCancelConfirm(false)} className="flex-1 rounded-xl">Keep Plan</Button>
-              <Button onClick={cancelSubscription} disabled={canceling} className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white">
-                {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel Subscription"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
