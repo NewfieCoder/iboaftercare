@@ -27,8 +27,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check profile subscription
-    const profiles = await base44.entities.UserProfile.list();
+    // Check profile subscription (filter by created_by for RLS)
+    const profiles = await base44.entities.UserProfile.filter({ 
+      created_by: user.email.toLowerCase() 
+    });
+    
     if (profiles.length === 0) {
       return Response.json({ 
         premium: false, 
@@ -38,16 +41,26 @@ Deno.serve(async (req) => {
     }
 
     const profile = profiles[0];
-    const isPremium = profile.premium && profile.subscription_status === 'active';
-    const tier = profile.premium_tier || 'free';
+    
+    // Check expiration
+    let isActive = profile.subscription_status === 'active';
+    if (profile.subscription_expiration_date) {
+      const expires = new Date(profile.subscription_expiration_date);
+      if (expires < new Date()) {
+        isActive = false;
+      }
+    }
+    
+    const effectivePremium = profile.premium === true && isActive;
+    const effectiveTier = effectivePremium ? (profile.premium_tier || 'premium') : 'free';
 
     return Response.json({ 
-      premium: isPremium, 
-      tier: tier,
+      premium: effectivePremium, 
+      tier: effectiveTier,
       role: user.role,
       status: profile.subscription_status,
       expires: profile.subscription_expiration_date,
-      reason: isPremium ? 'paid subscription' : 'no subscription'
+      reason: effectivePremium ? 'active subscription' : 'expired or inactive'
     });
   } catch (error) {
     console.error('Premium status check error:', error);

@@ -80,7 +80,15 @@ export default function NavigationMenu({ currentPageName }) {
       return simulatedTier === "Premium" || simulatedTier === "Standard";
     }
     
-    // CRITICAL: Paid subscription check (premium=true + status=active)
+    // Check expiration for passes
+    if (profile?.subscription_expiration_date) {
+      const expires = new Date(profile.subscription_expiration_date);
+      if (expires < new Date()) {
+        return false; // Expired
+      }
+    }
+    
+    // Paid subscription check (premium=true + status=active)
     return profile?.premium === true && profile?.subscription_status === "active";
   };
 

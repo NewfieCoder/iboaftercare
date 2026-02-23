@@ -62,22 +62,44 @@ export default function CoachChat() {
     
     // Check premium status
     const user = await base44.auth.me();
-    const profiles = await base44.entities.UserProfile.list();
-    const hasPremium = profiles.length > 0 && profiles[0].premium;
-    const isTester = user?.role === 'tester';
     
-    // Admin full unlock mode (highest priority)
-    const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true" && user?.role === "admin";
-    
-    // Check tier simulation
-    const simulatedTier = localStorage.getItem("adminTierSimulation");
-    
-    if (adminUnlocked) {
+    // Tester/Admin always have access
+    if (user?.role === 'admin' || user?.role === 'tester') {
       setIsPremium(true);
-    } else if (simulatedTier && user?.role === "admin") {
-      setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
     } else {
-      setIsPremium(hasPremium || isTester);
+      // Admin full unlock mode
+      const adminUnlocked = localStorage.getItem("adminFullUnlock") === "true";
+      
+      // Check tier simulation
+      const simulatedTier = localStorage.getItem("adminTierSimulation");
+      
+      if (adminUnlocked) {
+        setIsPremium(true);
+      } else if (simulatedTier) {
+        setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
+      } else {
+        // Check real subscription with expiration
+        const profiles = await base44.entities.UserProfile.filter({ 
+          created_by: user.email.toLowerCase() 
+        });
+        
+        if (profiles.length > 0) {
+          const profile = profiles[0];
+          let isActive = profile.subscription_status === 'active';
+          
+          // Check expiration
+          if (profile.subscription_expiration_date) {
+            const expires = new Date(profile.subscription_expiration_date);
+            if (expires < new Date()) {
+              isActive = false;
+            }
+          }
+          
+          setIsPremium(profile.premium === true && isActive);
+        } else {
+          setIsPremium(false);
+        }
+      }
     }
     
     // Count today's sessions for free tier limit
