@@ -7,8 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Crown, Code, Eye } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import BetaFeedbackForm from "@/components/BetaFeedbackForm";
-import TierSimulator from "@/components/admin/TierSimulator";
-import SubscriptionPlans from "@/components/SubscriptionPlans";
+
 
 export default function ProfileSettings() {
   const [user, setUser] = useState(null);
@@ -18,9 +17,6 @@ export default function ProfileSettings() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showSubscriptions, setShowSubscriptions] = useState(false);
-  const [canceling, setCanceling] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -34,44 +30,18 @@ export default function ProfileSettings() {
         return;
       }
 
-      // FIXED: Filter by current user's email (matches created_by / RLS)
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ 
+      const profiles = await base44.entities.UserProfile.filter({ 
         created_by: u.email.toLowerCase() 
       });
 
       if (profiles.length > 0) {
         const p = profiles[0];
-
-        // Check expiration
-        let isActive = p.subscription_status === 'active';
-        if (p.subscription_expiration_date) {
-          const expires = new Date(p.subscription_expiration_date);
-          if (expires < new Date()) {
-            isActive = false;
-          }
-        }
-
-        setProfile({
-          ...p,
-          effectivePremium: p.premium && isActive,
-          effectiveTier: isActive ? (p.premium_tier || 'free') : 'free'
-        });
+        setProfile(p);
         setDarkMode(p.dark_mode || false);
       } else {
         setProfile(null);
       }
       setLoading(false);
-
-      // Handle Stripe redirect params
-      if (searchParams.get('success') === 'true') {
-        alert('🎉 Payment successful! Reloading your premium features...');
-        // Force reload profile
-        await loadProfile();
-        window.history.replaceState({}, '', '/ProfileSettings');
-      } else if (searchParams.get('canceled') === 'true') {
-        alert('Payment canceled. No charges made.');
-        window.history.replaceState({}, '', '/ProfileSettings');
-      }
     } catch (error) {
       console.error('Profile load error:', error);
       setLoading(false);
@@ -90,24 +60,7 @@ export default function ProfileSettings() {
     window.dispatchEvent(new CustomEvent("darkModeToggle", { detail: val }));
   }
 
-  async function cancelSubscription() {
-    setCanceling(true);
-    try {
-      const response = await base44.functions.invoke('cancelSubscription', {});
-      if (response.data.success) {
-        alert("✅ Subscription canceled. Access retained until end of period.");
-        // Force reload profile to show updated status
-        await loadProfile();
-      } else {
-        alert('Cancellation failed: ' + (response.data.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Cancellation error:', error);
-      alert('Unable to cancel. Try again or contact support.');
-    }
-    setCanceling(false);
-    setShowCancelConfirm(false);
-  }
+
 
   async function deleteAllData() {
     setDeleting(true);
@@ -209,7 +162,7 @@ export default function ProfileSettings() {
 
 
       {/* Recovery Info */}
-      {!showSubscriptions && profile && (
+      {profile && (
         <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-5">
           <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">Recovery Profile</h3>
           <div className="space-y-3">
@@ -249,9 +202,7 @@ export default function ProfileSettings() {
         </div>
       )}
 
-      {!showSubscriptions && (
-        <>
-          {/* Privacy & Legal */}
+      {/* Privacy & Legal */}
           <div className="glass border border-white/30 dark:border-white/10 rounded-2xl divide-y divide-white/10">
             <Link to={createPageUrl("Privacy")} className="w-full flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -264,10 +215,8 @@ export default function ProfileSettings() {
             </Link>
           </div>
 
-          {/* Beta Feedback */}
-          <BetaFeedbackForm user={user} />
-        </>
-      )}
+      {/* Beta Feedback */}
+      <BetaFeedbackForm user={user} />
 
 
 
