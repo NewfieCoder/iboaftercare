@@ -105,35 +105,6 @@ export default function MindfulnessStudio() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Premium check (Tester/Admin bypass + paid subscription)
-  const hasPremiumAccess = 
-    user?.role === "admin" || 
-    user?.role === "tester" || 
-    localStorage.getItem("adminFullUnlock") === "true" ||
-    (profile?.premium === true && profile?.subscription_status === "active");
-
-  if (!loading && !hasPremiumAccess) {
-    return (
-      <>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <Card className="p-8 text-center">
-            <Crown className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Premium Feature
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Mindfulness Studio is available with Premium subscription only.
-            </p>
-            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
-              Upgrade to Premium
-            </Button>
-          </Card>
-        </div>
-        {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} feature="Mindfulness Studio" />}
-      </>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
