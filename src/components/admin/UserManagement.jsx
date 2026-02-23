@@ -253,30 +253,9 @@ export default function UserManagement({ adminEmail }) {
                       {new Date(user.created_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        {user.premium ? (
-                          <>
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                              user.premium_tier === 'premium'
-                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                            }`}>
-                              <Crown className="w-3 h-3" />
-                              {user.premium_tier === 'premium' ? 'Premium' : 'Standard'}
-                            </span>
-                            {user.subscription_status && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
-                                {user.subscription_status === 'active' ? '✓ Active' : user.subscription_status}
-                                {user.subscription_expiration_date && ` until ${new Date(user.subscription_expiration_date).toLocaleDateString()}`}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 w-fit">
-                            Free
-                          </span>
-                        )}
-                      </div>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 w-fit">
+                        Full Access
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium capitalize ${
@@ -317,11 +296,6 @@ export default function UserManagement({ adminEmail }) {
                               Demote to User
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => openSubDialog(user)}>
-                            <Crown className="w-4 h-4 mr-2" />
-                            Manage Subscription
-                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
@@ -365,10 +339,10 @@ export default function UserManagement({ adminEmail }) {
             {newRole === 'tester' && (
               <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                 <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">
-                  ⚡ Free Premium Access
+                  ⚡ Beta Tester Access
                 </p>
                 <p className="text-xs text-purple-700 dark:text-purple-300">
-                  This user will automatically receive full Premium ($29.99/mo) access for free as long as they have the Tester role. No payment required.
+                  This user will have the Tester role for beta testing and feedback purposes.
                 </p>
               </div>
             )}
@@ -396,93 +370,7 @@ export default function UserManagement({ adminEmail }) {
         </DialogContent>
       </Dialog>
 
-      {/* Manual Subscription Override Dialog */}
-      <Dialog open={showSubDialog} onOpenChange={setShowSubDialog}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Manual Subscription Override</DialogTitle>
-            <DialogDescription>
-              Force-set subscription tier for {selectedSubUser?.email}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-              <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
-                ⚠️ Admin Override
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                This bypasses Stripe payments. Use for payment glitches, testing, or special cases.
-              </p>
-            </div>
 
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                Tier to Grant
-              </label>
-              <Select value={manualTier} onValueChange={setManualTier}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                Duration (Days - Optional)
-              </label>
-              <Input
-                type="number"
-                placeholder="Leave empty for indefinite access"
-                value={manualDays}
-                onChange={(e) => setManualDays(e.target.value)}
-                className="rounded-xl"
-              />
-              <p className="text-xs text-slate-500 mt-1">E.g., 7 for 7-day pass, or leave blank for permanent</p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                Reason (for activity log)
-              </label>
-              <Input
-                placeholder="e.g., Payment glitch - manual unlock"
-                value={manualReason}
-                onChange={(e) => setManualReason(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSubDialog(false)} 
-              className="rounded-xl"
-              disabled={subLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => handleManualSubscription('revoke')} 
-              className="rounded-xl bg-red-600 hover:bg-red-700"
-              variant="destructive"
-              disabled={subLoading}
-            >
-              {subLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Revoke Subscription'}
-            </Button>
-            <Button 
-              onClick={() => handleManualSubscription('grant')} 
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
-              disabled={subLoading}
-            >
-              {subLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Grant Access'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
