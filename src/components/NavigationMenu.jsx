@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { 
   Menu, Home, MessageCircle, TrendingUp, BookOpen, Users, Settings, 
-  Crown, ClipboardList, Sparkles, Shield, Flag, Edit, TestTube, LogOut
+  Crown, ClipboardList, Sparkles, Shield, Flag, Edit, TestTube, LogOut, ChevronDown
 } from "lucide-react";
 
 const menuSections = {
@@ -40,11 +40,8 @@ export default function NavigationMenu({ currentPageName }) {
   const [profile, setProfile] = useState(null);
   const [expandedSections, setExpandedSections] = useState({
     main: true,
-    wellness: false,
-    admin: false,
-    moderator: false,
-    editor: false,
-    tester: false
+    wellness: true,
+    roleSpecific: true
   });
 
   useEffect(() => {
@@ -65,6 +62,13 @@ export default function NavigationMenu({ currentPageName }) {
   const hasRole = (requiredRoles) => {
     if (!requiredRoles || requiredRoles.length === 0) return true;
     return requiredRoles.includes(user?.role);
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const handleLogout = async () => {
@@ -108,10 +112,16 @@ export default function NavigationMenu({ currentPageName }) {
 
       {/* Main Navigation */}
       <div className="space-y-1 px-2 mb-4">
-        <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-          Main
-        </p>
-        {menuSections.main.map((item) => (
+        <button
+          onClick={() => toggleSection('main')}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Main
+          </span>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.main ? 'rotate-180' : ''}`} />
+        </button>
+        {expandedSections.main && menuSections.main.map((item) => (
           <Link
             key={item.page}
             to={createPageUrl(item.page)}
@@ -130,10 +140,16 @@ export default function NavigationMenu({ currentPageName }) {
 
       {/* Wellness Tools */}
       <div className="space-y-1 px-2 mb-4">
-        <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-          Wellness Tools
-        </p>
-        {menuSections.wellness.map((item) => (
+        <button
+          onClick={() => toggleSection('wellness')}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Wellness Tools
+          </span>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.wellness ? 'rotate-180' : ''}`} />
+        </button>
+        {expandedSections.wellness && menuSections.wellness.map((item) => (
           <Link
             key={item.page}
             to={createPageUrl(item.page)}
@@ -156,10 +172,16 @@ export default function NavigationMenu({ currentPageName }) {
       {/* Role-Specific */}
       {menuSections.roleSpecific.some(item => hasRole(item.roles)) && (
         <div className="space-y-1 px-2 mb-4">
-          <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-            Admin & Tools
-          </p>
-          {menuSections.roleSpecific
+          <button
+            onClick={() => toggleSection('roleSpecific')}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Admin & Tools
+            </span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.roleSpecific ? 'rotate-180' : ''}`} />
+          </button>
+          {expandedSections.roleSpecific && menuSections.roleSpecific
             .filter(item => hasRole(item.roles))
             .map((item) => (
               <Link
