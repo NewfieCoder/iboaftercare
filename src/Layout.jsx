@@ -9,7 +9,6 @@ import NavigationMenu from "@/components/NavigationMenu";
 import SimulationBanner from "@/components/SimulationBanner";
 import Logo from "@/components/Logo";
 import MobileHeader from "@/components/MobileHeader";
-import PullToRefresh from "@/components/PullToRefresh";
 import { AnimatePresence, motion } from "framer-motion";
 
 const navItems = [
@@ -56,13 +55,8 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [darkMode]);
 
-  const handleRefresh = async () => {
-    window.location.reload();
-  };
-
   return (
     <div className={`min-h-screen transition-colors duration-300 relative overflow-hidden`}>
-      <PullToRefresh onRefresh={handleRefresh} />
       {/* Nature-inspired background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />
@@ -104,9 +98,6 @@ export default function Layout({ children, currentPageName }) {
           --color-primary-dark: #0F766E;
           --color-accent: #3B82F6;
           --color-warm: #F59E0B;
-        }
-        html, body {
-          overscroll-behavior: none;
         }
         .dark {
           color-scheme: dark;
@@ -160,19 +151,6 @@ export default function Layout({ children, currentPageName }) {
           transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
         }
 
-        /* User select: none for UI controls */
-        button, a, nav, .no-select, [role="button"], [role="tab"], [role="menuitem"] {
-          user-select: none;
-          -webkit-user-select: none;
-        }
-
-        /* Keep user-select enabled for readable content */
-        p, article, .prose, .markdown, [role="article"], textarea, input[type="text"], 
-        .journal-content, .forum-content, .resource-content {
-          user-select: text;
-          -webkit-user-select: text;
-        }
-
         /* Elegant serif for headings */
         h1, h2, h3, .serif-heading {
           font-family: 'Cormorant', serif;
@@ -180,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {!hideNav && (
-        <header className="hidden md:block fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10 no-select" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <header className="hidden md:block fixed top-0 left-0 right-0 z-40 glass border-b border-white/20 dark:border-white/10 no-select">
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2">
               <Logo variant="icon" className="w-8 h-8" />
@@ -189,9 +167,11 @@ export default function Layout({ children, currentPageName }) {
                   IboAftercare Coach
                 </span>
                 {userRole && userRole !== 'user' && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                     userRole === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
                     userRole === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                    userRole === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                    userRole === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
                     ''
                   }`}>
                     {userRole}
@@ -228,8 +208,18 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      <main className={`${!hideNav ? "pt-16 md:pt-20 pb-36 md:pb-40" : ""}`}>
-        {children}
+      <main className={`${!hideNav ? "pt-14 md:pt-14 pb-32 md:pb-6" : ""}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {!hideNav && (
@@ -237,7 +227,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="md:hidden fixed bottom-16 left-0 right-0 z-30">
             <CrisisFooter />
           </div>
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 no-select" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/20 dark:border-white/10 safe-area-bottom no-select">
             <div className="flex items-center justify-around px-2 py-2">
               {navItems.map((item) => {
                 const isActive = currentPageName === item.page;
@@ -245,12 +235,6 @@ export default function Layout({ children, currentPageName }) {
                   <Link
                     key={item.page}
                     to={createPageUrl(item.page)}
-                    onClick={(e) => {
-                      if (isActive) {
-                        e.preventDefault();
-                        window.location.href = createPageUrl(item.page);
-                      }
-                    }}
                     className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
                       isActive
                         ? "text-emerald-600 dark:text-emerald-400"
@@ -261,7 +245,7 @@ export default function Layout({ children, currentPageName }) {
                     }}
                   >
                     <item.icon className={`w-5 h-5 ${isActive ? "scale-110" : ""} transition-transform duration-200`} />
-                    <span className="text-xs font-medium">{item.name}</span>
+                    <span className="text-[10px] font-medium">{item.name}</span>
                   </Link>
                 );
               })}

@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardList, Heart, BookOpen, Calendar, Lock } from "lucide-react";
+import { ClipboardList, Heart, BookOpen, Calendar, Lock, Crown } from "lucide-react";
 import { toast } from "sonner";
-
+import PremiumUpsell from "@/components/PremiumUpsell";
 
 const checklistTemplates = {
   "medical-screening": {
@@ -63,44 +63,34 @@ const checklistTemplates = {
 
 export default function PrepToolkit() {
   const [profile, setProfile] = useState(null);
-  const [user, setUser] = useState(null);
   const [checklists, setChecklists] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [showUpsell, setShowUpsell] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
   async function loadData() {
-    try {
-      const currentUser = await base44.auth.me().catch(() => null);
-      const profiles = await base44.entities.UserProfile.list();
-      const userChecklists = await base44.entities.PrepChecklist.list();
-      
-      setUser(currentUser);
-      if (profiles.length > 0) setProfile(profiles[0]);
-      setChecklists(userChecklists);
-      
-      // Create default checklists if none exist
-      if (userChecklists.length === 0 && profiles[0]?.user_type === "pre-treatment") {
-        for (const [type, template] of Object.entries(checklistTemplates)) {
-          await base44.entities.PrepChecklist.create({
-            checklist_type: type,
-            items: template.items.map(item => ({ ...item, completed: false })),
-            completed_count: 0,
-            total_count: template.items.length
-          });
-        }
-        // Reload after creating
-        const reloadedChecklists = await base44.entities.PrepChecklist.list();
-        setChecklists(reloadedChecklists);
+    const profiles = await base44.entities.UserProfile.list();
+    const userChecklists = await base44.entities.PrepChecklist.list();
+    
+    if (profiles.length > 0) setProfile(profiles[0]);
+    setChecklists(userChecklists);
+    
+    // Create default checklists if none exist
+    if (userChecklists.length === 0 && profiles[0]?.user_type === "pre-treatment") {
+      for (const [type, template] of Object.entries(checklistTemplates)) {
+        await base44.entities.PrepChecklist.create({
+          checklist_type: type,
+          items: template.items.map(item => ({ ...item, completed: false })),
+          completed_count: 0,
+          total_count: template.items.length
+        });
       }
-    } catch (e) {
-      console.error('Failed to load data:', e);
-    } finally {
-      setLoading(false);
+      loadData();
     }
+    setLoading(false);
   }
 
   async function toggleItem(checklistId, itemIndex) {
@@ -133,6 +123,28 @@ export default function PrepToolkit() {
           </p>
         </Card>
       </div>
+    );
+  }
+
+  if (!profile?.premium) {
+    return (
+      <>
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="p-8 text-center">
+            <Crown className="w-12 h-12 mx-auto mb-4 text-amber-500" />
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Premium Feature
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              The Pre-Treatment Prep Toolkit is available with Premium subscription.
+            </p>
+            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+              Upgrade to Premium
+            </Button>
+          </Card>
+        </div>
+        {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} />}
+      </>
     );
   }
 

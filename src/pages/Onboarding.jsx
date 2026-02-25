@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
@@ -28,8 +28,6 @@ const reasons = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(true);
-
   const [userType, setUserType] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [treatmentDate, setTreatmentDate] = useState("");
@@ -38,68 +36,17 @@ export default function Onboarding() {
   const [selectedChallenges, setSelectedChallenges] = useState([]);
   const [selectedGoals, setSelectedGoals] = useState([]);
   const [reminderTime, setReminderTime] = useState("09:00");
-  const [fullName, setFullName] = useState("");
-  const [birthdate, setBirthdate] = useState("");
-  const [gender, setGender] = useState("");
-  const [heightCm, setHeightCm] = useState("");
-  const [weightKg, setWeightKg] = useState("");
   const [saving, setSaving] = useState(false);
-  const [ageError, setAgeError] = useState("");
-
-  useEffect(() => {
-    async function checkOnboarding() {
-      try {
-        const profiles = await base44.entities.UserProfile.list();
-        if (profiles.length > 0 && profiles[0]?.onboarding_complete) {
-          navigate(createPageUrl("Home"), { replace: true });
-          return;
-        }
-      } catch (e) {
-        console.error("Error checking onboarding status:", e);
-      }
-      setLoading(false);
-    }
-    checkOnboarding();
-  }, [navigate]);
 
   const toggleItem = (item, list, setter) => {
-    setter(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
-  };
-
-  const calculateAge = (birthDate) => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  const isAdult = () => {
-    const age = calculateAge(birthdate);
-    return age !== null && age >= 18;
+    setter(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
   };
 
   const handleComplete = async () => {
-    if (!isAdult()) {
-      setAgeError("You must be at least 18 years old to use this app.");
-      return;
-    }
-    setAgeError("");
     setSaving(true);
-
     await base44.entities.UserProfile.create({
-      full_name: fullName,
-      birthdate: birthdate,
-      biological_gender: gender,
-      height_cm: heightCm ? parseFloat(heightCm) : null,
-      weight_kg: weightKg ? parseFloat(weightKg) : null,
       user_type: userType,
       treatment_confirmed: true,
-      age_verified: true,
       treatment_date: treatmentDate,
       treatment_facility: facility,
       primary_reason: primaryReason,
@@ -108,22 +55,14 @@ export default function Onboarding() {
       daily_reminder_time: reminderTime,
       onboarding_complete: true,
       dark_mode: false,
-      has_purchased: false,
+      premium: false,
+      premium_tier: "free"
     });
-
     navigate(createPageUrl("Home"));
   };
 
-  const canProceed = () => {
-    if (step === 1) return userType !== "";
-    if (step === 2) return confirmed && treatmentDate;
-    if (step === 3) return primaryReason;
-    if (step === 6) return fullName && birthdate && gender && isAdult();
-    return true;
-  };
-
   const steps = [
-    // Welcome step
+    // Welcome
     <div key="welcome" className="flex flex-col items-center text-center px-4">
       <div className="mb-8">
         <Logo variant="icon" className="w-24 h-24" />
@@ -149,7 +88,7 @@ export default function Onboarding() {
       <DisclaimerBanner />
     </div>,
 
-    // User Type Selection (step 1)
+    // User Type Selection
     <div key="usertype" className="px-4">
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Your Journey Stage</h2>
       <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
@@ -163,6 +102,9 @@ export default function Onboarding() {
               ? "border-emerald-300 dark:border-emerald-700"
               : "border-white/30 dark:border-white/10 hover:border-emerald-200 hover:shadow-lg"
           }`}
+          style={{
+            boxShadow: userType === "pre-treatment" ? '0 0 20px rgba(16, 185, 129, 0.2)' : undefined
+          }}
         >
           <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Pre-Treatment Preparation</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -176,6 +118,9 @@ export default function Onboarding() {
               ? "border-emerald-300 dark:border-emerald-700"
               : "border-white/30 dark:border-white/10 hover:border-emerald-200 hover:shadow-lg"
           }`}
+          style={{
+            boxShadow: userType === "post-treatment" ? '0 0 20px rgba(16, 185, 129, 0.2)' : undefined
+          }}
         >
           <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Post-Treatment Integration</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -185,19 +130,16 @@ export default function Onboarding() {
       </div>
     </div>,
 
-    // Confirmation & Treatment Date (step 2)
+    // Confirmation
     <div key="confirm" className="px-4">
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Before We Begin</h2>
       <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">
-        {userType === "pre-treatment"
+        {userType === "pre-treatment" 
           ? "This app provides informational preparation support (not medical advice). You must be 18+ with a confirmed treatment date."
           : "This app is for individuals who have completed Ibogaine treatment (18+). Please confirm your eligibility."}
       </p>
       <div className="space-y-4">
-        <label
-          className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 cursor-pointer"
-          onClick={() => setConfirmed(!confirmed)}
-        >
+        <label className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 cursor-pointer" onClick={() => setConfirmed(!confirmed)}>
           <Checkbox checked={confirmed} className="mt-0.5" />
           <span className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
             {userType === "pre-treatment"
@@ -209,81 +151,152 @@ export default function Onboarding() {
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
             {userType === "pre-treatment" ? "Scheduled Treatment Date" : "Treatment Completion Date"}
           </label>
-          <Input
-            type="date"
-            value={treatmentDate}
-            onChange={(e) => setTreatmentDate(e.target.value)}
-            className="rounded-xl"
-          />
+          <Input type="date" value={treatmentDate} onChange={e => setTreatmentDate(e.target.value)} className="rounded-xl" />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Treatment Facility (optional)</label>
-          <Input
-            placeholder="e.g., Ambio Life Sciences, Beond"
-            value={facility}
-            onChange={(e) => setFacility(e.target.value)}
-            className="rounded-xl"
-          />
+          <Input placeholder="e.g., Ambio Life Sciences, Beond" value={facility} onChange={e => setFacility(e.target.value)} className="rounded-xl" />
         </div>
       </div>
     </div>,
 
-    // ... (the rest of the steps array remains unchanged – reason, challenges, goals, personal info, reminders)
-    // Just make sure to include the age error display in the personal info step:
-
-    // Inside the personal info step JSX:
-    <div key="personal" className="px-4">
-      {/* ... existing content ... */}
-      <div className="space-y-4">
-        {/* ... name, birthdate, gender, height, weight ... */}
-
-        {birthdate && !isAdult() && (
-          <p className="text-sm text-red-600 mt-1">
-            You must be at least 18 years old to continue.
-          </p>
-        )}
-        {ageError && (
-          <p className="text-sm text-red-600 mt-4 text-center font-medium">{ageError}</p>
-        )}
+    // Primary Reason
+    <div key="reason" className="px-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Your Journey</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">What was your primary reason for Ibogaine treatment?</p>
+      <div className="grid grid-cols-2 gap-3">
+        {reasons.map(reason => (
+          <button
+            key={reason}
+            onClick={() => setPrimaryReason(reason)}
+            className={`p-4 rounded-2xl text-sm font-medium text-left transition-all duration-200 border glass ${
+              primaryReason === reason
+                ? "border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-emerald-200 hover:shadow-md"
+            }`}
+            style={{
+              boxShadow: primaryReason === reason ? '0 0 15px rgba(16, 185, 129, 0.2)' : undefined
+            }}
+          >
+            {reason}
+          </button>
+        ))}
       </div>
     </div>,
 
-    // ... reminders step unchanged ...
+    // Challenges
+    <div key="challenges" className="px-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+        {userType === "pre-treatment" ? "Preparation Concerns" : "Current Challenges"}
+      </h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+        {userType === "pre-treatment" 
+          ? "What are you most concerned about as you prepare?"
+          : "Select any that apply to personalize your experience."}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {(userType === "pre-treatment" 
+          ? ["Tapering", "Medical Screening", "Anxiety/Fear", "Intentions", "Logistics", "Family Support", "Safety Concerns", "Financial", "What to Expect", "Provider Selection"]
+          : challenges
+        ).map(ch => (
+          <button
+            key={ch}
+            onClick={() => toggleItem(ch, selectedChallenges, setSelectedChallenges)}
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border glass hover:scale-105 active:scale-95 ${
+              selectedChallenges.includes(ch)
+                ? "border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-emerald-200"
+            }`}
+            style={{
+              boxShadow: selectedChallenges.includes(ch) ? '0 0 12px rgba(16, 185, 129, 0.25)' : undefined
+            }}
+          >
+            {ch}
+          </button>
+        ))}
+      </div>
+    </div>,
+
+    // Goals
+    <div key="goals" className="px-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Your Goals</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+        {userType === "pre-treatment" 
+          ? "What do you hope to gain from preparation and treatment?"
+          : "What would you like to work on? Pick as many as you like."}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {(userType === "pre-treatment"
+          ? ["Set Clear Intentions", "Physical Preparation", "Mental Readiness", "Understand Process", "Build Support Network", "Taper Safely", "Plan Integration", "Financial Planning", "Arrange Logistics", "Spiritual Prep"]
+          : goals
+        ).map(g => (
+          <button
+            key={g}
+            onClick={() => toggleItem(g, selectedGoals, setSelectedGoals)}
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border glass hover:scale-105 active:scale-95 ${
+              selectedGoals.includes(g)
+                ? "border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                : "border-white/30 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-emerald-200"
+            }`}
+            style={{
+              boxShadow: selectedGoals.includes(g) ? '0 0 12px rgba(16, 185, 129, 0.25)' : undefined
+            }}
+          >
+            {g}
+          </button>
+        ))}
+      </div>
+    </div>,
+
+    // Reminders
+    <div key="reminders" className="px-4">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Daily Check-in</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">When would you like your daily reminder?</p>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Preferred Time</label>
+          <Input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)} className="rounded-xl" />
+        </div>
+      </div>
+      <div className="mt-8 p-6 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30 rounded-2xl border border-teal-100 dark:border-teal-900">
+        <h3 className="font-semibold text-teal-800 dark:text-teal-200 mb-2">You're All Set! 🌱</h3>
+        <p className="text-sm text-teal-700 dark:text-teal-300 leading-relaxed">
+          IboGuide, your AI coach, will be ready to chat anytime. Start with a daily check-in or explore guided sessions for integration, mindfulness, and recovery support.
+        </p>
+      </div>
+    </div>,
   ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950">
-        <div className="text-center">
-          <Logo variant="icon" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
-          <p className="text-sm text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const canProceed = () => {
+    if (step === 1) return userType !== "";
+    if (step === 2) return confirmed && treatmentDate;
+    if (step === 3) return primaryReason;
+    return true;
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Background */}
+      {/* Background matching main app */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />
         <svg className="absolute inset-0 w-full h-full opacity-30 dark:opacity-20" preserveAspectRatio="none">
           <path d="M-50,100 Q200,150 400,80 T900,120" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.4"/>
         </svg>
       </div>
-
-      {/* Progress bar */}
+      
+      {/* Progress */}
       <div className="px-6 pt-8 pb-4">
         <div className="flex gap-1.5 max-w-md mx-auto">
           {steps.map((_, i) => (
-            <motion.div
-              key={i}
+            <motion.div 
+              key={i} 
               className={`h-1 flex-1 rounded-full transition-all duration-500 ${
                 i <= step ? "bg-gradient-to-r from-emerald-500 to-teal-500" : "bg-white/40 dark:bg-slate-800/40"
               }`}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: i <= step ? 1 : 0.3 }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
+              style={{ boxShadow: i <= step ? '0 0 10px rgba(16, 185, 129, 0.3)' : undefined }}
             />
           ))}
         </div>
@@ -291,7 +304,7 @@ export default function Onboarding() {
 
       {/* Content */}
       <div className="flex-1 flex flex-col max-w-lg mx-auto w-full py-6">
-        <motion.div
+        <motion.div 
           key={step}
           className="flex-1"
           initial={{ opacity: 0, x: 20 }}
@@ -310,19 +323,13 @@ export default function Onboarding() {
             </Button>
           )}
           <Button
-            onClick={() => (step < steps.length - 1 ? setStep(step + 1) : handleComplete())}
+            onClick={() => step < steps.length - 1 ? setStep(step + 1) : handleComplete()}
             disabled={!canProceed() || saving}
             className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-12 text-base font-medium"
           >
-            {saving
-              ? "Setting up..."
-              : step < steps.length - 1
-              ? (
-                <>
-                  Continue <ChevronRight className="w-4 h-4 ml-1" />
-                </>
-              )
-              : "Start My Journey"}
+            {saving ? "Setting up..." : step < steps.length - 1 ? (
+              <>Continue <ChevronRight className="w-4 h-4 ml-1" /></>
+            ) : "Start My Journey"}
           </Button>
         </div>
       </div>

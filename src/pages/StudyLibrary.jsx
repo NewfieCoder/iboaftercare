@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Search, ExternalLink } from "lucide-react";
+import { BookOpen, Search, Crown, ExternalLink, Lock } from "lucide-react";
 import { toast } from "sonner";
-
+import PremiumUpsell from "@/components/PremiumUpsell";
 
 const sampleStudies = [
   {
@@ -77,7 +77,7 @@ export default function StudyLibrary() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-
+  const [showUpsell, setShowUpsell] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -110,13 +110,15 @@ export default function StudyLibrary() {
     
     const matchesFilter = filter === "all" || study.category === filter;
     
-    return matchesSearch && matchesFilter;
+    const canView = !study.premium_only || profile?.premium;
+    
+    return matchesSearch && matchesFilter && canView;
   });
 
   const categories = ["all", "pre-treatment", "post-treatment", "integration", "safety", "outcomes", "wellness"];
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
           Research Library
@@ -168,7 +170,12 @@ export default function StudyLibrary() {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                       {study.title}
                     </h3>
-
+                    {study.premium_only && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Crown className="w-3 h-3" />
+                        Premium
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mb-3">
                     <Badge>{study.source}</Badge>
@@ -200,12 +207,7 @@ export default function StudyLibrary() {
                   {study.citation}
                 </p>
                 {study.url && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="gap-2 text-teal-600"
-                    onClick={() => window.open(study.url, '_blank')}
-                  >
+                  <Button variant="ghost" size="sm" className="gap-2 text-teal-600">
                     <ExternalLink className="w-3 h-3" />
                     View Source
                   </Button>
@@ -216,7 +218,29 @@ export default function StudyLibrary() {
         )}
       </div>
 
+      {/* Premium Notice */}
+      {!profile?.premium && studies.some(s => s.premium_only) && (
+        <Card className="mt-6 p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                  Premium Studies Available
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Unlock exclusive research summaries and expert analyses with Premium
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+              Upgrade
+            </Button>
+          </div>
+        </Card>
+      )}
 
+      {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} />}
     </div>
   );
 }

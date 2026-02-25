@@ -126,7 +126,7 @@ export default function Resources() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-4">
+    <div className="max-w-lg mx-auto px-4 py-6">
       <PullToRefresh onRefresh={refreshData} />
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight mb-5">
         Resources

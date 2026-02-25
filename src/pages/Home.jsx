@@ -8,6 +8,7 @@ import HabitWidget from "@/components/dashboard/HabitWidget";
 import QuickActions from "@/components/dashboard/QuickActions";
 import MilestoneCard from "@/components/dashboard/MilestoneCard";
 import WelcomeTutorial from "@/components/WelcomeTutorial";
+import IntegrationCalendar from "@/components/dashboard/IntegrationCalendar";
 import SplashScreen from "@/components/SplashScreen";
 import { Loader2 } from "lucide-react";
 
@@ -24,9 +25,14 @@ export default function Home() {
       const u = await base44.auth.me();
       setUser(u);
       const profiles = await base44.entities.UserProfile.list();
-
       
-      if (profiles.length === 0 || !profiles[0]?.onboarding_complete) {
+      // If user has Tester role, ensure premium is granted
+      if (u?.role === 'tester' && profiles.length > 0 && !profiles[0].premium) {
+        await base44.entities.UserProfile.update(profiles[0].id, { premium: true });
+        profiles[0].premium = true;
+      }
+      
+      if (profiles.length === 0) {
         navigate(createPageUrl("Onboarding"));
         return;
       }
@@ -71,7 +77,7 @@ export default function Home() {
   return (
     <>
       {showSplash && <SplashScreen onComplete={completeSplash} />}
-      <div className="max-w-lg mx-auto px-4 py-4 space-y-5">
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
         {showTutorial && <WelcomeTutorial onComplete={completeTutorial} />}
 
         {/* Greeting */}
@@ -84,13 +90,11 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Recovery Journey */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white" style={{ fontFamily: "'Cormorant', serif" }}>
-            Recovery Journey
-          </h2>
-          <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
-        </div>
+        {/* Milestone */}
+        <MilestoneCard treatmentDate={profile?.treatment_date} userType={profile?.user_type} />
+
+        {/* Integration Calendar */}
+        <IntegrationCalendar />
 
         {/* Quick Actions */}
         <QuickActions />

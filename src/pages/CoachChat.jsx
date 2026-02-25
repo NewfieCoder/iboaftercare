@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Flag, Mic } from "lucide-react";
+import { Send, Plus, Sparkles, Loader2, History, ArrowLeft, Crown, Play } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import CrisisRedirect from "@/components/CrisisRedirect";
-import { toast } from "sonner";
-
+import PremiumUpsell from "@/components/PremiumUpsell";
 import GuidedSession from "@/components/chat/GuidedSession";
 import AccessibilityControls from "@/components/AccessibilityControls";
 
@@ -33,77 +32,13 @@ export default function CoachChat() {
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
-
+  const [showPremium, setShowPremium] = useState(false);
   const [showGuidedSession, setShowGuidedSession] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
+  const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isListening, setIsListening] = useState(false);
-  const [reportingMsg, setReportingMsg] = useState(null);
-
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const recognitionRef = useRef(null);
-
-  // Speech Recognition setup
-  useEffect(() => {
-    if (!("SpeechRecognition" in window || "webkitSpeechRecognition" in window)) {
-      console.warn("Speech Recognition not supported in this browser");
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.lang = "en-US";
-
-    recognitionRef.current.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput((prev) => (prev + " " + transcript).trim());
-      setIsListening(false);
-    };
-
-    recognitionRef.current.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
-      toast.error("Voice input error: " + event.error);
-      setIsListening(false);
-    };
-
-    recognitionRef.current.onend = () => setIsListening(false);
-
-    return () => {
-      if (recognitionRef.current) recognitionRef.current.abort();
-    };
-  }, []);
-
-  const toggleVoiceInput = () => {
-    if (!recognitionRef.current) {
-      toast.error("Voice input not supported in this browser");
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      recognitionRef.current.start();
-      setIsListening(true);
-    }
-  };
-
-  // Expanded crisis keywords
-  const crisisKeywords = [
-    "suicide", "suicidal", "kill myself", "kill me", "end my life", "want to die",
-    "self-harm", "hurt myself", "cutting", "self injury", "no reason to live",
-    "better off dead", "overdose", "end it all", "hopeless", "give up",
-    "can't go on", "nothing left", "worthless", "burden", "end it",
-    "no point", "cut myself", "jump off", "hang myself", "poison", "shotgun",
-    "goodbye forever", "everyone better without me"
-  ];
-
-  const containsCrisisWords = (text) => {
-    const lower = text.toLowerCase();
-    return crisisKeywords.some((word) => lower.includes(word));
-  };
 
   useEffect(() => {
     loadConversations();
@@ -124,13 +59,28 @@ export default function CoachChat() {
   async function loadConversations() {
     const convs = await base44.agents.listConversations({ agent_name: "iboGuide" });
     setConversations(convs);
-
+    
+    // Check premium status (or Tester role which grants free premium)
+    const user = await base44.auth.me();
+    const profiles = await base44.entities.UserProfile.list();
+    const hasPremium = profiles.length > 0 && profiles[0].premium;
+    const isTester = user?.role === 'tester';
+    
+    // Check admin tier simulation
+    const simulatedTier = localStorage.getItem("adminTierSimulation");
+    if (simulatedTier) {
+      setIsPremium(simulatedTier === "Premium" || simulatedTier === "Standard");
+    } else {
+      setIsPremium(hasPremium || isTester);
+    }
+    
+    // Count today's sessions for free tier limit
     const today = new Date().toDateString();
-    const todaySessions = convs.filter(
-      (c) => new Date(c.created_date).toDateString() === today
+    const todaySessions = convs.filter(c => 
+      new Date(c.created_date).toDateString() === today
     );
     setSessionCount(todaySessions.length);
-
+    
     if (convs.length > 0) {
       const latest = await base44.agents.getConversation(convs[0].id);
       setCurrentConv(latest);
@@ -140,6 +90,22 @@ export default function CoachChat() {
   }
 
   async function startNewConversation() {
+    // Check tier simulation first
+    const simulatedTier = localStorage.getItem("adminTierSimulation");
+    let effectivePremium = isPremium;
+    
+    if (simulatedTier === "Free") {
+      effectivePremium = false;
+    } else if (simulatedTier === "Premium" || simulatedTier === "Standard") {
+      effectivePremium = true;
+    }
+    
+    // Check free tier limit (5 sessions per day)
+    if (!effectivePremium && sessionCount >= 5) {
+      setShowPremium(true);
+      return;
+    }
+    
     const conv = await base44.agents.createConversation({
       agent_name: "iboGuide",
       metadata: { name: `Session - ${new Date().toLocaleDateString()}` },
@@ -147,9 +113,8 @@ export default function CoachChat() {
     setCurrentConv(conv);
     setMessages([]);
     setShowHistory(false);
-    setConversations((prev) => [conv, ...prev]);
-    setSessionCount((prev) => prev + 1);
-    return conv;
+    setConversations(prev => [conv, ...prev]);
+    setSessionCount(prev => prev + 1);
   }
 
   async function sendMessage(text) {
@@ -158,15 +123,26 @@ export default function CoachChat() {
     setInput("");
     setSending(true);
 
-    if (containsCrisisWords(msg)) {
+    // Enhanced crisis detection
+    const crisisWords = [
+      "suicide", "suicidal", "kill myself", "end my life", "want to die", 
+      "self-harm", "hurt myself", "no reason to live", "better off dead",
+      "overdose", "end it all"
+    ];
+    if (crisisWords.some(w => msg.toLowerCase().includes(w))) {
       setShowCrisis(true);
       setSending(false);
-      return;
+      return; // Don't process message, prioritize crisis response
     }
 
     let conv = currentConv;
     if (!conv) {
-      conv = await startNewConversation();
+      conv = await base44.agents.createConversation({
+        agent_name: "iboGuide",
+        metadata: { name: `Session - ${new Date().toLocaleDateString()}` },
+      });
+      setCurrentConv(conv);
+      setConversations(prev => [conv, ...prev]);
     }
 
     await base44.agents.addMessage(conv, { role: "user", content: msg });
@@ -174,26 +150,15 @@ export default function CoachChat() {
     inputRef.current?.focus();
   }
 
+  const handleVoiceInput = (transcript) => {
+    setInput(transcript);
+  };
+
   async function selectConversation(conv) {
     const full = await base44.agents.getConversation(conv.id);
     setCurrentConv(full);
     setMessages(full.messages || []);
     setShowHistory(false);
-  }
-
-  async function reportMessage(message) {
-    try {
-      await base44.entities.AIResponseReport.create({
-        conversation_id: currentConv?.id || "unknown",
-        message_content: message.content,
-        report_reason: "Other",
-        user_comment: "User flagged this response for review",
-      });
-      toast.success("Response reported. Our team will review it.");
-      setReportingMsg(null);
-    } catch (e) {
-      toast.error("Failed to submit report");
-    }
   }
 
   if (loading) {
@@ -204,20 +169,18 @@ export default function CoachChat() {
     );
   }
 
+  // History view
   if (showHistory) {
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => setShowHistory(false)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-          >
+          <button onClick={() => setShowHistory(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Session History</h2>
         </div>
         <div className="space-y-2">
-          {conversations.map((c) => (
+          {conversations.map(c => (
             <button
               key={c.id}
               onClick={() => selectConversation(c)}
@@ -236,9 +199,7 @@ export default function CoachChat() {
             </button>
           ))}
           {conversations.length === 0 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
-              No sessions yet
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No sessions yet</p>
           )}
         </div>
       </div>
@@ -246,18 +207,11 @@ export default function CoachChat() {
   }
 
   return (
-    <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-9rem)]">
+    <div className="max-w-lg mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)]">
       {showCrisis && <CrisisRedirect onClose={() => setShowCrisis(false)} />}
-      {showGuidedSession && (
-        <GuidedSession
-          sessionType={showGuidedSession}
-          onClose={() => setShowGuidedSession(null)}
-        />
-      )}
-      <AccessibilityControls
-        onVoiceInput={(transcript) => setInput(transcript)}
-        showVoiceInput={messages.length > 0}
-      />
+      {showPremium && <PremiumUpsell onClose={() => setShowPremium(false)} feature="unlimited AI coach sessions" />}
+      {showGuidedSession && <GuidedSession sessionType={showGuidedSession} onClose={() => setShowGuidedSession(null)} />}
+      <AccessibilityControls onVoiceInput={handleVoiceInput} showVoiceInput={messages.length > 0} />
 
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/50">
@@ -267,22 +221,24 @@ export default function CoachChat() {
           </div>
           <div>
             <h2 className="font-semibold text-slate-900 dark:text-white text-sm">IboGuide</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              AI Wellness Coach • Not a licensed professional
+            <p className="text-xs text-emerald-600 dark:text-emerald-400">
+              {isPremium ? "Premium" : `${sessionCount}/5 daily sessions`}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowHistory(true)}
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
+          {!isPremium && (
+            <button
+              onClick={() => setShowPremium(true)}
+              className="p-2 rounded-xl text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              <Crown className="w-5 h-5" />
+            </button>
+          )}
+          <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <History className="w-5 h-5" />
           </button>
-          <button
-            onClick={startNewConversation}
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
+          <button onClick={startNewConversation} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <Plus className="w-5 h-5" />
           </button>
         </div>
@@ -299,13 +255,12 @@ export default function CoachChat() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs">
               Your AI aftercare coach. I'm here to support your recovery journey with evidence-based guidance and encouragement.
             </p>
-
+            
+            {/* Guided Sessions */}
             <div className="w-full mb-4">
-              <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Guided Practices
-              </p>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Guided Practices</p>
               <div className="grid grid-cols-3 gap-2">
-                {GUIDED_SESSIONS.map((session) => (
+                {GUIDED_SESSIONS.map(session => (
                   <button
                     key={session.id}
                     onClick={() => setShowGuidedSession(session.id)}
@@ -321,7 +276,7 @@ export default function CoachChat() {
             </div>
 
             <div className="w-full space-y-2">
-              {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
+              {SUGGESTED_PROMPTS.slice(0, 4).map(prompt => (
                 <button
                   key={prompt}
                   onClick={() => sendMessage(prompt)}
@@ -336,20 +291,8 @@ export default function CoachChat() {
             </div>
           </div>
         )}
-
         {messages.map((msg, i) => (
-          <div key={i} className="group relative">
-            <MessageBubble message={msg} />
-            {msg.role === "assistant" && (
-              <button
-                onClick={() => reportMessage(msg)}
-                className="absolute -right-2 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                title="Report this response"
-              >
-                <Flag className="w-3 h-3 text-slate-400 hover:text-red-600" />
-              </button>
-            )}
-          </div>
+          <MessageBubble key={i} message={msg} />
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -361,19 +304,11 @@ export default function CoachChat() {
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
             placeholder="Message IboGuide..."
             className="flex-1 px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border-0 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
           />
-          <Button
-            onClick={toggleVoiceInput}
-            variant="outline"
-            size="icon"
-            className={`rounded-xl ${isListening ? "bg-red-100 animate-pulse" : ""}`}
-          >
-            <Mic className={`w-5 h-5 ${isListening ? "text-red-600" : "text-slate-600"}`} />
-          </Button>
           <Button
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || sending}

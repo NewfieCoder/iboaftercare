@@ -4,10 +4,11 @@ import { createPageUrl } from "../utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Code } from "lucide-react";
+import { User, Moon, Bell, Shield, LogOut, Trash2, Loader2, ExternalLink, ChevronRight, Crown, Code, Eye } from "lucide-react";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
 import BetaFeedbackForm from "@/components/BetaFeedbackForm";
-
+import TierSimulator from "@/components/admin/TierSimulator";
+import SubscriptionPlans from "@/components/SubscriptionPlans";
 
 export default function ProfileSettings() {
   const [user, setUser] = useState(null);
@@ -17,39 +18,36 @@ export default function ProfileSettings() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showSubscriptions, setShowSubscriptions] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const loadProfile = async () => {
-    try {
+  useEffect(() => {
+    async function load() {
       const u = await base44.auth.me();
       setUser(u);
-
-      if (!u) {
-        setLoading(false);
-        return;
-      }
-
-      const profiles = await base44.entities.UserProfile.filter({ 
-        created_by: u.email.toLowerCase() 
-      });
-
+      const profiles = await base44.entities.UserProfile.list();
       if (profiles.length > 0) {
-        const p = profiles[0];
-        setProfile(p);
-        setDarkMode(p.dark_mode || false);
-      } else {
-        setProfile(null);
+        setProfile(profiles[0]);
+        setDarkMode(profiles[0].dark_mode || false);
       }
       setLoading(false);
-    } catch (error) {
-      console.error('Profile load error:', error);
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    loadProfile();
+      // Check for Stripe success/cancel params
+      if (searchParams.get('success') === 'true') {
+        // Payment successful - show success message
+        setTimeout(() => {
+          alert('🎉 Payment successful! Your premium features are now active.');
+          window.history.replaceState({}, '', '/ProfileSettings');
+        }, 500);
+      } else if (searchParams.get('canceled') === 'true') {
+        setTimeout(() => {
+          alert('Payment was canceled. No charges were made.');
+          window.history.replaceState({}, '', '/ProfileSettings');
+        }, 500);
+      }
+    }
+    load();
   }, [searchParams]);
 
   async function toggleDarkMode(val) {
@@ -60,32 +58,25 @@ export default function ProfileSettings() {
     window.dispatchEvent(new CustomEvent("darkModeToggle", { detail: val }));
   }
 
-
-
   async function deleteAllData() {
     setDeleting(true);
-    try {
-      const [moods, journals, habits, goals] = await Promise.all([
-        base44.entities.MoodLog.list(),
-        base44.entities.JournalEntry.list(),
-        base44.entities.HabitTracker.list(),
-        base44.entities.Goal.list(),
-      ]);
-      await Promise.all([
-        ...moods.map(m => base44.entities.MoodLog.delete(m.id)),
-        ...journals.map(j => base44.entities.JournalEntry.delete(j.id)),
-        ...habits.map(h => base44.entities.HabitTracker.delete(h.id)),
-        ...goals.map(g => base44.entities.Goal.delete(g.id)),
-      ]);
-      if (profile) await base44.entities.UserProfile.delete(profile.id);
-      alert('All data deleted. Logging out...');
-      base44.auth.logout();
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert('Data deletion failed. Try again.');
-    }
+    // Delete all user data
+    const [moods, journals, habits, goals] = await Promise.all([
+      base44.entities.MoodLog.list(),
+      base44.entities.JournalEntry.list(),
+      base44.entities.HabitTracker.list(),
+      base44.entities.Goal.list(),
+    ]);
+    await Promise.all([
+      ...moods.map(m => base44.entities.MoodLog.delete(m.id)),
+      ...journals.map(j => base44.entities.JournalEntry.delete(j.id)),
+      ...habits.map(h => base44.entities.HabitTracker.delete(h.id)),
+      ...goals.map(g => base44.entities.Goal.delete(g.id)),
+    ]);
+    if (profile) await base44.entities.UserProfile.delete(profile.id);
     setDeleting(false);
     setShowDeleteConfirm(false);
+    base44.auth.logout();
   }
 
   if (loading) {
@@ -97,7 +88,7 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-4 space-y-5">
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Settings</h1>
 
       {/* Profile Card */}
@@ -112,16 +103,31 @@ export default function ProfileSettings() {
               {user?.role && user.role !== 'user' && (
                 <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
                   user.role === 'admin' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
-                  user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : ''
+                  user.role === 'tester' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                  user.role === 'editor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                  user.role === 'moderator' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                  ''
                 }`}>
+                  {user.role === 'admin' && <Crown className="w-3 h-3" />}
                   {user.role === 'tester' && <Code className="w-3 h-3" />}
+                  {user.role === 'moderator' && <Shield className="w-3 h-3" />}
+                  {user.role === 'editor' && <Eye className="w-3 h-3" />}
                   {user.role}
                 </span>
               )}
-
+              {profile?.premium && (
+                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                  <Crown className="w-3 h-3" />
+                  Premium
+                </span>
+              )}
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
-
+            {user?.role === 'tester' && (
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
+                🧪 Free Premium Access (Testing)
+              </p>
+            )}
             {profile?.treatment_date && (
               <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                 Treatment: {new Date(profile.treatment_date).toLocaleDateString()}
@@ -158,10 +164,51 @@ export default function ProfileSettings() {
         </div>
       </div>
 
-
+      {/* Subscription Management */}
+      {!showSubscriptions ? (
+        <div className="glass border border-white/30 dark:border-white/10 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Subscription</h3>
+            {profile?.premium && (
+              <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 text-amber-700 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-800">
+                <Crown className="w-3 h-3" />
+                {profile.premium_tier === 'premium' ? 'Premium' : 'Standard'}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            {profile?.premium 
+              ? `You're currently on the ${profile.premium_tier} plan with full access to premium features.` 
+              : 'Upgrade to unlock AI coaching, advanced analytics, and premium features.'}
+          </p>
+          <Button
+            onClick={() => setShowSubscriptions(true)}
+            className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600"
+          >
+            {profile?.premium ? 'Manage Subscription' : 'View Plans'}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowSubscriptions(false)}
+            className="rounded-xl"
+          >
+            ← Back to Settings
+          </Button>
+          <SubscriptionPlans 
+            currentTier={profile?.premium ? profile.premium_tier : 'free'} 
+            onSuccess={() => {
+              setShowSubscriptions(false);
+              window.location.reload();
+            }}
+          />
+        </div>
+      )}
 
       {/* Recovery Info */}
-      {profile && (
+      {!showSubscriptions && profile && (
         <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 p-5">
           <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-3">Recovery Profile</h3>
           <div className="space-y-3">
@@ -201,7 +248,9 @@ export default function ProfileSettings() {
         </div>
       )}
 
-      {/* Privacy & Legal */}
+      {!showSubscriptions && (
+        <>
+          {/* Privacy & Legal */}
           <div className="glass border border-white/30 dark:border-white/10 rounded-2xl divide-y divide-white/10">
             <Link to={createPageUrl("Privacy")} className="w-full flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -214,10 +263,13 @@ export default function ProfileSettings() {
             </Link>
           </div>
 
-      {/* Beta Feedback */}
-      <BetaFeedbackForm user={user} />
+          {/* Beta Feedback */}
+          <BetaFeedbackForm user={user} />
+        </>
+      )}
 
-
+      {/* Admin Tier Simulator */}
+      {user?.role === 'admin' && <TierSimulator />}
 
       {/* Admin Panel Access */}
       {user?.role === 'admin' && (
@@ -227,7 +279,7 @@ export default function ProfileSettings() {
             Administrator Tools
           </h3>
           <p className="text-sm text-violet-700 dark:text-violet-300 mb-3">
-            You have admin access. Manage users, content, and community.
+            You have admin access. Manage users, content, and monetization.
           </p>
           <Button
             onClick={() => navigate(createPageUrl("Admin"))}
@@ -274,8 +326,6 @@ export default function ProfileSettings() {
           <Trash2 className="w-4 h-4" /> Delete All My Data
         </Button>
       </div>
-
-
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">

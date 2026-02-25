@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
-import NavigationMenu from "@/components/NavigationMenu";
 
 const rootPages = ["Home", "CoachChat", "Progress", "Resources", "Community", "ProfileSettings"];
 
@@ -12,7 +11,7 @@ export default function MobileHeader({ currentPageName }) {
   if (currentPageName === "Onboarding") return null;
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-white/10 no-select" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="md:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-white/10 safe-area-top no-select">
       <div className="flex items-center justify-between px-4 h-14">
         {isRootPage ? (
           <Logo variant="icon" className="w-8 h-8" />
@@ -25,10 +24,9 @@ export default function MobileHeader({ currentPageName }) {
             <span className="text-sm font-medium">Back</span>
           </button>
         )}
-        <h1 className="text-base font-semibold text-slate-900 dark:text-white absolute left-1/2 -translate-x-1/2 pointer-events-none">
+        <h1 className="text-base font-semibold text-slate-900 dark:text-white absolute left-1/2 -translate-x-1/2">
           {currentPageName === "Home" ? "" : currentPageName.replace(/([A-Z])/g, ' $1').trim()}
         </h1>
-        <NavigationMenu currentPageName={currentPageName} />
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ export default function Community() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-4 space-y-5">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <PullToRefresh onRefresh={loadData} />
       {/* Header */}
       <div className="text-center space-y-2">

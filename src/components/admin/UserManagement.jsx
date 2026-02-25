@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Crown, MoreVertical, Loader2, Mail, Code } from "lucide-react";
+import { Search, Ban, Crown, MoreVertical, Loader2, Mail, CheckCircle, Shield, Code, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -33,7 +33,6 @@ export default function UserManagement({ adminEmail }) {
   const [roleReason, setRoleReason] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-
   useEffect(() => {
     loadUsers();
   }, []);
@@ -42,9 +41,9 @@ export default function UserManagement({ adminEmail }) {
     try {
       const { data } = await base44.functions.invoke('adminGetUsers');
       setUsers(data || []);
+      setProfiles([]);
       setLoading(false);
     } catch (e) {
-      console.error('Load users error:', e);
       toast.error("Failed to load users");
       setLoading(false);
     }
@@ -67,23 +66,26 @@ export default function UserManagement({ adminEmail }) {
         reason: roleReason || `Changed role to ${newRole}`
       });
       
-      toast.success(result.data.message);
+      if (result.data.premiumGranted) {
+        toast.success(`${selectedUser.email} granted ${newRole} role with FREE premium access`);
+      } else {
+        toast.success(result.data.message);
+      }
       
       setShowRoleDialog(false);
-      await loadUsers();
+      loadUsers();
     } catch (e) {
-      console.error('Role change error:', e);
       toast.error(e.message || "Failed to change user role");
     }
   }
 
-
-
   function getRoleDescription(role) {
     switch(role) {
       case 'admin': return 'Full access to all features, user management, and settings';
-      case 'tester': return 'Beta testing and feedback role';
-      case 'user': return 'Standard user access';
+      case 'tester': return 'FREE Premium tier access for beta testing (no payment required)';
+      case 'editor': return 'Can edit resources, articles, and AI templates';
+      case 'moderator': return 'Can moderate forum posts and manage community';
+      case 'user': return 'Standard user access based on subscription tier';
       default: return '';
     }
   }
@@ -147,6 +149,8 @@ export default function UserManagement({ adminEmail }) {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="user">User</SelectItem>
             <SelectItem value="tester">Tester</SelectItem>
+            <SelectItem value="editor">Editor</SelectItem>
+            <SelectItem value="moderator">Moderator</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
@@ -157,7 +161,7 @@ export default function UserManagement({ adminEmail }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-slate-900 dark:text-white">{users.length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">Total</p>
@@ -169,6 +173,14 @@ export default function UserManagement({ adminEmail }) {
         <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
           <p className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'tester').length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">Testers</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
+          <p className="text-2xl font-bold text-orange-600">{users.filter(u => u.role === 'moderator').length}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Moderators</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
+          <p className="text-2xl font-bold text-blue-600">{users.filter(u => u.role === 'editor').length}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Editors</p>
         </div>
       </div>
 
@@ -185,7 +197,7 @@ export default function UserManagement({ adminEmail }) {
                   Joined
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  Subscription
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Role
@@ -211,14 +223,25 @@ export default function UserManagement({ adminEmail }) {
                       {new Date(user.created_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 w-fit">
-                        Full Access
-                      </span>
+                      {user.premium ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                          <Crown className="w-3 h-3" />
+                          Premium
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                          Free
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium capitalize ${
                         user.role === 'admin'
                           ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400"
+                          : user.role === 'moderator'
+                          ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                          : user.role === 'editor'
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                           : user.role === 'tester'
                           ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
@@ -246,7 +269,19 @@ export default function UserManagement({ adminEmail }) {
                           {user.role !== 'tester' && (
                             <DropdownMenuItem onClick={() => openRoleDialog(user, 'tester')}>
                               <Code className="w-4 h-4 mr-2" />
-                              Set as Tester
+                              Set as Tester (Free Premium)
+                            </DropdownMenuItem>
+                          )}
+                          {user.role !== 'editor' && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'editor')}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Set as Editor
+                            </DropdownMenuItem>
+                          )}
+                          {user.role !== 'moderator' && (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'moderator')}>
+                              <Shield className="w-4 h-4 mr-2" />
+                              Set as Moderator
                             </DropdownMenuItem>
                           )}
                           {(user.role && user.role !== 'user') && (
@@ -297,10 +332,10 @@ export default function UserManagement({ adminEmail }) {
             {newRole === 'tester' && (
               <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                 <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">
-                  ⚡ Beta Tester Access
+                  ⚡ Free Premium Access
                 </p>
                 <p className="text-xs text-purple-700 dark:text-purple-300">
-                  This user will have the Tester role for beta testing and feedback purposes.
+                  This user will automatically receive full Premium ($29.99/mo) access for free as long as they have the Tester role. No payment required.
                 </p>
               </div>
             )}
@@ -327,8 +362,6 @@ export default function UserManagement({ adminEmail }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
     </div>
   );
 }

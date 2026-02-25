@@ -3,16 +3,15 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Salad, Dumbbell, Moon, Heart, Loader2 } from "lucide-react";
+import { Sparkles, Salad, Dumbbell, Moon, Heart, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
+import PremiumUpsell from "@/components/PremiumUpsell";
 
 export default function WellnessPlanner() {
   const [profile, setProfile] = useState(null);
-  const [user, setUser] = useState(null);
   const [plans, setPlans] = useState([]);
   const [generating, setGenerating] = useState(false);
-
+  const [showUpsell, setShowUpsell] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,19 +19,12 @@ export default function WellnessPlanner() {
   }, []);
 
   async function loadData() {
-    try {
-      const currentUser = await base44.auth.me().catch(() => null);
-      const profiles = await base44.entities.UserProfile.list();
-      const wellnessPlans = await base44.entities.WellnessPlan.list('-created_date');
-      
-      setUser(currentUser);
-      if (profiles.length > 0) setProfile(profiles[0]);
-      setPlans(wellnessPlans);
-    } catch (e) {
-      console.error('Failed to load data:', e);
-    } finally {
-      setLoading(false);
-    }
+    const profiles = await base44.entities.UserProfile.list();
+    const wellnessPlans = await base44.entities.WellnessPlan.list('-created_date');
+    
+    if (profiles.length > 0) setProfile(profiles[0]);
+    setPlans(wellnessPlans);
+    setLoading(false);
   }
 
   async function generatePlan(planType) {
@@ -96,6 +88,28 @@ Return JSON: {days: [{day: 1, practice: "", duration: "", focus: ""}]}`
     } finally {
       setGenerating(false);
     }
+  }
+
+  if (!profile?.premium) {
+    return (
+      <>
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="p-8 text-center">
+            <Crown className="w-12 h-12 mx-auto mb-4 text-amber-500" />
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Premium Feature
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              AI-powered Wellness Planner is available with Premium subscription ($29.99/month).
+            </p>
+            <Button onClick={() => setShowUpsell(true)} className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600">
+              Upgrade to Premium
+            </Button>
+          </Card>
+        </div>
+        {showUpsell && <PremiumUpsell onClose={() => setShowUpsell(false)} />}
+      </>
+    );
   }
 
   const planTypes = [
