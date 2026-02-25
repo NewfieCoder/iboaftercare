@@ -6,11 +6,11 @@ import DiscountCodeInput from "./DiscountCodeInput";
 export default function PremiumUpsell({ onClose, feature = "this feature" }) {
   const [discount, setDiscount] = useState(null);
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-8 relative">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 relative my-8">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="absolute top-3 right-3 p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 z-10"
         >
           <X className="w-5 h-5" />
         </button>

@@ -38,6 +38,14 @@ export default function NavigationMenu({ currentPageName }) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({
+    main: true,
+    wellness: false,
+    admin: false,
+    moderator: false,
+    editor: false,
+    tester: false
+  });
 
   useEffect(() => {
     loadUser();

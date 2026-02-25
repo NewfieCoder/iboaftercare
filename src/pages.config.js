@@ -47,40 +47,40 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Privacy from './pages/Privacy';
+import TesterFeedback from './pages/TesterFeedback';
 import Admin from './pages/Admin';
-import CoachChat from './pages/CoachChat';
-import Community from './pages/Community';
+import PrepToolkit from './pages/PrepToolkit';
 import EditorDashboard from './pages/EditorDashboard';
-import Home from './pages/Home';
 import ModeratorDashboard from './pages/ModeratorDashboard';
 import Onboarding from './pages/Onboarding';
-import PrepToolkit from './pages/PrepToolkit';
-import Privacy from './pages/Privacy';
-import ProfileSettings from './pages/ProfileSettings';
+import WellnessPlanner from './pages/WellnessPlanner';
+import Community from './pages/Community';
 import Progress from './pages/Progress';
 import Resources from './pages/Resources';
 import StudyLibrary from './pages/StudyLibrary';
-import TesterFeedback from './pages/TesterFeedback';
-import WellnessPlanner from './pages/WellnessPlanner';
+import ProfileSettings from './pages/ProfileSettings';
+import CoachChat from './pages/CoachChat';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Privacy": Privacy,
+    "TesterFeedback": TesterFeedback,
     "Admin": Admin,
-    "CoachChat": CoachChat,
-    "Community": Community,
+    "PrepToolkit": PrepToolkit,
     "EditorDashboard": EditorDashboard,
-    "Home": Home,
     "ModeratorDashboard": ModeratorDashboard,
     "Onboarding": Onboarding,
-    "PrepToolkit": PrepToolkit,
-    "Privacy": Privacy,
-    "ProfileSettings": ProfileSettings,
+    "WellnessPlanner": WellnessPlanner,
+    "Community": Community,
     "Progress": Progress,
     "Resources": Resources,
     "StudyLibrary": StudyLibrary,
-    "TesterFeedback": TesterFeedback,
-    "WellnessPlanner": WellnessPlanner,
+    "ProfileSettings": ProfileSettings,
+    "CoachChat": CoachChat,
+    "Home": Home,
 }
 
 export const pagesConfig = {
