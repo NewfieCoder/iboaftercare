@@ -1,0 +1,100 @@
+{
+  "type": "object",
+  "properties": {
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "pre-treatment",
+        "post-treatment"
+      ],
+      "description": "Whether user is preparing for or recovering from treatment"
+    },
+    "treatment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of Ibogaine treatment (scheduled or completed)"
+    },
+    "treatment_confirmed": {
+      "type": "boolean",
+      "description": "User confirmed treatment status"
+    },
+    "primary_reason": {
+      "type": "string",
+      "enum": [
+        "Opioid Addiction",
+        "Alcohol Addiction",
+        "PTSD",
+        "TBI",
+        "Depression",
+        "Anxiety",
+        "Other"
+      ],
+      "description": "Primary reason for treatment"
+    },
+    "current_challenges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Current challenges user faces"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User recovery/prep goals"
+    },
+    "treatment_facility": {
+      "type": "string",
+      "description": "Where user received/will receive treatment"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "description": "Whether onboarding is completed"
+    },
+    "dark_mode": {
+      "type": "boolean",
+      "description": "Dark mode preference"
+    },
+    "daily_reminder_time": {
+      "type": "string",
+      "description": "Preferred reminder time"
+    },
+    "premium": {
+      "type": "boolean",
+      "description": "Premium subscription status"
+    },
+    "premium_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "standard",
+        "premium"
+      ],
+      "description": "Subscription tier level"
+    },
+    "questionnaire_answers": {
+      "type": "string",
+      "description": "JSON string of detailed questionnaire answers"
+    }
+  },
+  "required": [
+    "treatment_confirmed"
+  ],
+  "name": "UserProfile",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

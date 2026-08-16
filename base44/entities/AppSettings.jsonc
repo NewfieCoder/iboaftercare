@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique setting identifier"
+    },
+    "setting_value": {
+      "type": "string",
+      "description": "Setting value (JSON string for complex values)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "pricing",
+        "content",
+        "ai",
+        "ui",
+        "notifications"
+      ],
+      "description": "Setting category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    }
+  },
+  "required": [
+    "setting_key",
+    "setting_value",
+    "category"
+  ],
+  "name": "AppSettings",
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

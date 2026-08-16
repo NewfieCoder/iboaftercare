@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Journal entry title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Journal entry content"
+    },
+    "ai_prompt": {
+      "type": "string",
+      "description": "AI prompt that inspired this entry"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "entry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of journal entry"
+    }
+  },
+  "required": [
+    "content",
+    "entry_date"
+  ],
+  "name": "JournalEntry",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

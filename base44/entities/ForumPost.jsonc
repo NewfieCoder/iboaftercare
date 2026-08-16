@@ -1,0 +1,90 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Post title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Post content"
+    },
+    "anonymous_username": {
+      "type": "string",
+      "description": "Anonymous username for privacy"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Integration Stories",
+        "Daily Check-ins",
+        "Challenges & Support",
+        "Wellness Tips",
+        "Milestones",
+        "General"
+      ],
+      "description": "Post category"
+    },
+    "likes_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of likes"
+    },
+    "replies_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of replies"
+    },
+    "is_flagged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flagged for moderation"
+    }
+  },
+  "required": [
+    "content",
+    "anonymous_username",
+    "category"
+  ],
+  "name": "ForumPost",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    }
+  }
+}

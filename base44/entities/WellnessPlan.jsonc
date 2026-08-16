@@ -1,0 +1,67 @@
+{
+  "type": "object",
+  "properties": {
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "nutrition",
+        "exercise",
+        "sleep",
+        "mindfulness",
+        "holistic"
+      ],
+      "description": "Type of wellness plan"
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether plan was AI-generated"
+    },
+    "plan_content": {
+      "type": "string",
+      "description": "JSON string of plan details (meals, exercises, etc.)"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Plan goals"
+    },
+    "duration_days": {
+      "type": "number",
+      "description": "Duration of plan in days"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "Completion percentage"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether plan is currently active"
+    }
+  },
+  "required": [
+    "plan_type",
+    "plan_content"
+  ],
+  "name": "WellnessPlan",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

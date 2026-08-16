@@ -1,0 +1,132 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Study or source title"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "Stanford",
+        "Ambio",
+        "GITA",
+        "SAMHSA",
+        "Davis et al",
+        "Beond",
+        "Nature Medicine",
+        "Other"
+      ],
+      "description": "Source organization"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of findings"
+    },
+    "key_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bullet points of key findings"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "pre-treatment",
+        "post-treatment",
+        "integration",
+        "safety",
+        "outcomes",
+        "wellness"
+      ],
+      "description": "Study category"
+    },
+    "premium_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether study is premium content"
+    },
+    "citation": {
+      "type": "string",
+      "description": "Full citation/reference"
+    },
+    "url": {
+      "type": "string",
+      "description": "Link to study (optional)"
+    }
+  },
+  "required": [
+    "title",
+    "source",
+    "summary",
+    "category"
+  ],
+  "name": "StudyReference",
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "editor"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.premium_only": false
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "editor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "tester"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "editor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "editor"
+          }
+        }
+      ]
+    }
+  }
+}

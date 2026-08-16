@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Goal title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Goal description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Integration",
+        "Physical Health",
+        "Mental Health",
+        "Relationships",
+        "Lifestyle",
+        "Career"
+      ],
+      "description": "Goal category"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Completed",
+        "Paused"
+      ],
+      "description": "Goal status"
+    },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Target completion date"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Progress percentage"
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Goal milestones"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "status"
+  ],
+  "name": "Goal",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

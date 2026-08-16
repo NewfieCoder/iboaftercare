@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "admin_email": {
+      "type": "string",
+      "description": "Email of admin who performed action"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "user_banned",
+        "user_suspended",
+        "user_promoted",
+        "content_edited",
+        "discount_created",
+        "forum_post_deleted",
+        "settings_changed",
+        "announcement_sent"
+      ],
+      "description": "Type of action performed"
+    },
+    "details": {
+      "type": "string",
+      "description": "Details about the action"
+    },
+    "target_entity_id": {
+      "type": "string",
+      "description": "ID of affected entity (user, post, etc.)"
+    }
+  },
+  "required": [
+    "admin_email",
+    "action_type"
+  ],
+  "name": "AdminActivityLog",
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

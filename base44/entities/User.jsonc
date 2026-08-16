@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "moderator",
+        "tester",
+        "user"
+      ],
+      "description": "User role with hierarchical permissions"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "editor",
+          "moderator",
+          "tester",
+          "user"
+        ]
+      },
+      "description": "Multiple roles (e.g., Tester + Editor)"
+    },
+    "active_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "moderator",
+        "tester",
+        "user"
+      ],
+      "description": "Currently active role for context-specific views"
+    },
+    "forum_banned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user is banned from forum"
+    },
+    "forum_ban_expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Forum ban expiration (null = permanent)"
+    }
+  },
+  "name": "User",
+  "required": [
+    "role",
+    "roles",
+    "active_role",
+    "forum_ban_expires"
+  ]
+}

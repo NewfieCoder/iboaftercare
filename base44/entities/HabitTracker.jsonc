@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "properties": {
+    "habit_name": {
+      "type": "string",
+      "description": "Name of the habit"
+    },
+    "target_frequency": {
+      "type": "string",
+      "enum": [
+        "Daily",
+        "Weekly",
+        "3x per week",
+        "5x per week"
+      ],
+      "description": "How often the habit should be performed"
+    },
+    "current_streak": {
+      "type": "number",
+      "description": "Current streak count"
+    },
+    "longest_streak": {
+      "type": "number",
+      "description": "Longest streak achieved"
+    },
+    "completions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of completion dates"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Mindfulness",
+        "Exercise",
+        "Nutrition",
+        "Sleep",
+        "Social",
+        "Journaling",
+        "Other"
+      ],
+      "description": "Habit category"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Whether the habit is currently active"
+    }
+  },
+  "required": [
+    "habit_name",
+    "target_frequency",
+    "category"
+  ],
+  "name": "HabitTracker",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

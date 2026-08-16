@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "properties": {
+    "checklist_type": {
+      "type": "string",
+      "enum": [
+        "medical-screening",
+        "preparation",
+        "logistics",
+        "mental-prep",
+        "post-treatment"
+      ],
+      "description": "Type of checklist"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Checklist items with completion status"
+    },
+    "completed_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of completed items"
+    },
+    "total_count": {
+      "type": "number",
+      "description": "Total items in checklist"
+    }
+  },
+  "required": [
+    "checklist_type"
+  ],
+  "name": "PrepChecklist",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

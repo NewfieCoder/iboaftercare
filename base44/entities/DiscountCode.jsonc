@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Discount code (e.g., IBO2026)"
+    },
+    "discount_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Discount percentage"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expiration date"
+    },
+    "usage_limit": {
+      "type": "number",
+      "description": "Maximum number of uses (0 = unlimited)"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Current usage count"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether code is active"
+    },
+    "description": {
+      "type": "string",
+      "description": "Internal note about the code"
+    }
+  },
+  "required": [
+    "code",
+    "discount_percent"
+  ],
+  "name": "DiscountCode",
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

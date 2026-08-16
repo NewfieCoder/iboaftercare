@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "mood_score": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Daily mood score 1-10"
+    },
+    "energy_level": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Energy level 1-10"
+    },
+    "cravings_level": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Cravings intensity 0-10"
+    },
+    "triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Triggers experienced"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form notes"
+    },
+    "log_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the log"
+    }
+  },
+  "required": [
+    "mood_score",
+    "log_date"
+  ],
+  "name": "MoodLog",
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

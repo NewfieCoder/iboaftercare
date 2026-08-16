@@ -1,0 +1,109 @@
+{
+  "type": "object",
+  "properties": {
+    "rule_type": {
+      "type": "string",
+      "enum": [
+        "keyword-filter",
+        "auto-flag",
+        "ban-trigger",
+        "rate-limit"
+      ],
+      "description": "Type of moderation rule"
+    },
+    "rule_name": {
+      "type": "string",
+      "description": "Name of the rule"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Blocked/flagged keywords"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "flag",
+        "block",
+        "auto-delete",
+        "notify-moderator"
+      ],
+      "description": "Action to take when rule triggered"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether rule is active"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Moderator/admin who created rule"
+    }
+  },
+  "required": [
+    "rule_type",
+    "rule_name",
+    "action"
+  ],
+  "name": "ModerationRule",
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    }
+  }
+}

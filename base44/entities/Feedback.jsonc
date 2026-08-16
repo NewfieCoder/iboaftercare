@@ -1,0 +1,113 @@
+{
+  "type": "object",
+  "properties": {
+    "feedback_type": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "feature-request",
+        "beta-feedback",
+        "general"
+      ],
+      "description": "Type of feedback"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Feedback subject/title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed feedback"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Priority level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewing",
+        "in-progress",
+        "resolved",
+        "closed"
+      ],
+      "default": "new",
+      "description": "Feedback status"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who submitted"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Role of user who submitted"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Admin response/notes"
+    }
+  },
+  "required": [
+    "feedback_type",
+    "subject",
+    "description",
+    "user_email"
+  ],
+  "name": "Feedback",
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "moderator"
+          }
+        }
+      ]
+    }
+  }
+}
